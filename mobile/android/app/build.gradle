@@ -31,7 +31,16 @@ android {
 
 // Keep the web bundle available to Gradle even when a Windows filesystem cannot
 // replace Capacitor's generated assets/public directory during `cap sync`.
-android.sourceSets.main.assets.srcDirs = ["../../dist"]
+// Capacitor's local WebView server expects the bundle under assets/public, not
+// at the root of the Android assets directory.
+def capacitorWebAssetsRoot = file("$buildDir/generated/capacitor-assets")
+def capacitorWebAssetsDir = file("$capacitorWebAssetsRoot/public")
+tasks.register("syncCapacitorWebAssets", Sync) {
+    from file("../../dist")
+    into capacitorWebAssetsDir
+}
+preBuild.dependsOn(syncCapacitorWebAssets)
+android.sourceSets.main.assets.srcDirs = [capacitorWebAssetsRoot]
 
 repositories {
     flatDir{
