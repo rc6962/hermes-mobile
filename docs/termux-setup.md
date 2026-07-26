@@ -55,7 +55,17 @@ bound to `127.0.0.1`.
 The same settings may be stored in the local Hermes profile configuration under the API-server
 platform settings; keep the key out of tracked files.
 
-## 4. Start Hermes and verify health
+## 4. Pair the Android app at runtime
+
+The APK does not contain an API key. On first launch, choose **Pair with Hermes** and enter the
+same `API_SERVER_KEY` value configured in Termux. The Android app stores the value using the
+Android Keystore and never displays it after pairing. Use **Forget pairing** to remove the local
+credential and pair again after rotating the key.
+
+The pairing screen must be used on the phone; do not put the bearer value in `VITE_*` files or
+commit it to the repository.
+
+## 5. Start Hermes and verify health
 
 Start the gateway process that hosts the API-server adapter:
 
@@ -79,7 +89,7 @@ Expected health is a JSON object with `"status": "ok"`. Capabilities should adve
 `run_submission`, `run_events_sse`, and the session endpoints before the APK exposes those
 features.
 
-## 5. Verify one streamed run manually
+## 6. Verify one streamed run manually
 
 ```bash
 curl -fsS -X POST http://127.0.0.1:8642/v1/runs \
@@ -99,7 +109,7 @@ The stream uses SSE. Comment lines such as `: keepalive` are transport keepalive
 ignored. JSON `data:` events include `message.delta`, tool lifecycle, approval, and terminal
 run events. Do not use terminal output scraping as the app protocol.
 
-## 6. Install the fixed lifecycle helper and prepare external-command permissions
+## 7. Install the fixed lifecycle helper and prepare external-command permissions
 
 The Capacitor bridge uses only explicit Termux `RUN_COMMAND` intents for fixed operations. Copy
 the reviewed helper to the Hermes home directory and make it executable:
@@ -123,7 +133,7 @@ accepts arbitrary command text, and it does not contain the API key. Before test
 The APK must never pass arbitrary chat text or user-entered shell text through `RUN_COMMAND`.
 Normal chat always uses the authenticated HTTP/SSE API.
 
-## 7. Android acceptance checklist
+## 8. Android acceptance checklist
 
 Before calling the backend ready:
 

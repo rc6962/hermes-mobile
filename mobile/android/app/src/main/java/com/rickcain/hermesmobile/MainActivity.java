@@ -7,7 +7,9 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // BridgeActivity consumes these registrations during super.onCreate().
         registerPlugin(TermuxLifecyclePlugin.class);
+        registerPlugin(SecureCredentialsPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

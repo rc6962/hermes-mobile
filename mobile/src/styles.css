@@ -58,6 +58,19 @@ button:disabled {
   padding: 0.5rem 0 1.5rem;
 }
 
+.app-header__actions {
+  display: grid;
+  justify-items: end;
+  gap: 0.5rem;
+}
+
+.app-header__forget {
+  padding: 0.35rem 0.55rem;
+  color: #bfdbfe;
+  background: rgba(30, 41, 59, 0.8);
+  font-size: 0.72rem;
+}
+
 .eyebrow {
   margin: 0 0 0.35rem;
   color: #93c5fd;
@@ -119,6 +132,43 @@ h2 {
 
 .connection-card--offline {
   border-color: rgba(248, 113, 113, 0.34);
+}
+
+.pairing-card {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.pairing-form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.pairing-form label {
+  color: #dbeafe;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pairing-form input {
+  width: 100%;
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  border-radius: 0.7rem;
+  padding: 0.75rem 0.8rem;
+  color: #f8fafc;
+  background: rgba(2, 6, 23, 0.7);
+}
+
+.pairing-form input:focus {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.pairing-form__error {
+  margin: 0;
+  color: #fecaca;
+  font-size: 0.85rem;
 }
 
 .connection-card p {
