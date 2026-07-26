@@ -3,6 +3,6 @@
   "appName": "Hermes Mobile",
   "webDir": "dist",
   "server": {
-    "cleartext": false
+    "cleartext": true
   }
 }

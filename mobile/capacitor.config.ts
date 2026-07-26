@@ -5,7 +5,9 @@ const config: CapacitorConfig = {
   appName: "Hermes Mobile",
   webDir: "dist",
   server: {
-    cleartext: false,
+    // Hermes is intentionally loopback-only during local Termux operation.
+    // The Android network-security config below limits cleartext to loopback hosts.
+    cleartext: true,
   },
 };
 
