@@ -39,6 +39,36 @@ describe("HermesApi", () => {
     });
   });
 
+  it("uses native transport for JSON requests while keeping SSE on fetch", async () => {
+    const nativeCalls: RecordedCall[] = [];
+    const fetchCalls: RecordedCall[] = [];
+    const api = createHermesApi({
+      baseUrl: "http://127.0.0.1:8642",
+      apiKey: "test-api-key",
+      nativeHttpImpl: async (input, init) => {
+        nativeCalls.push({ url: String(input), init });
+        return jsonResponse({ status: "ok" });
+      },
+      fetchImpl: async (input, init) => {
+        fetchCalls.push({ url: String(input), init });
+        return new Response(
+          'data: {"event":"run.completed","output":"done"}\n\n',
+          { headers: { "Content-Type": "text/event-stream" } },
+        );
+      },
+    });
+
+    await api.health();
+    await api.subscribeToRun("run-1", () => undefined);
+
+    expect(nativeCalls.map((call) => call.url)).toEqual([
+      "http://127.0.0.1:8642/health",
+    ]);
+    expect(fetchCalls.map((call) => call.url)).toEqual([
+      "http://127.0.0.1:8642/v1/runs/run-1/events",
+    ]);
+  });
+
   it("creates a run from input and optional session id", async () => {
     const calls: RecordedCall[] = [];
     const api = createHermesApi({

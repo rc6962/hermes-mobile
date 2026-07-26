@@ -1,3 +1,4 @@
+import { getNativeHttpImplementation, type NativeHttpImplementation } from "./native-http";
 import { createSseParser, type SseEvent } from "./sse";
 import type {
   ApprovalDecision,
@@ -22,6 +23,7 @@ export interface HermesApiOptions {
   apiKey: string;
   sessionKey?: string;
   fetchImpl?: FetchImplementation;
+  nativeHttpImpl?: NativeHttpImplementation;
 }
 
 export class HermesApiError extends Error {
@@ -74,6 +76,7 @@ async function errorFromResponse(response: Response): Promise<HermesApiError> {
 export function createHermesApi(options: HermesApiOptions) {
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   const fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
+  const nativeHttpImpl = options.nativeHttpImpl ?? getNativeHttpImplementation();
 
   const headers = (hasJsonBody = false): Record<string, string> => {
     const result: Record<string, string> = {};
@@ -94,7 +97,7 @@ export function createHermesApi(options: HermesApiOptions) {
     init: RequestInit = {},
   ): Promise<T> => {
     const hasJsonBody = typeof init.body === "string";
-    const response = await fetchImpl(`${baseUrl}${path}`, {
+    const response = await (nativeHttpImpl ?? fetchImpl)(`${baseUrl}${path}`, {
       ...init,
       headers: {
         ...headers(hasJsonBody),
