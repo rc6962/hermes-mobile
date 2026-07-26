@@ -11,17 +11,23 @@ dist/
 local.properties
 **/build/
 **/.cxx/
+*.dex
+*.class
+*.hprof
 
 # Capacitor generated/native output
 android/.gradle/
 android/app/build/
+**/.android-build/
 
 # Local configuration and secrets
 .env
+.android/
 .env.*
 !.env.example
 *.keystore
 *.jks
+*.p12
 
 # Generated APKs and bundles
 *.apk

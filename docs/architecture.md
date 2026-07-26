@@ -38,3 +38,15 @@ On a real Android device or emulator with supported Termux and Hermes installed:
 4. streamed event text appears in the chat;
 5. stop cancels an active run;
 6. closing/reopening the app can reconnect to the backend.
+
+## Provisional Android identity
+
+| Property | Value |
+|---|---|
+| Application ID (provisional) | `com.rickcain.hermesmobile` |
+| Minimum SDK | API 26 (Android 8.0 Oreo); raise only if a required dependency mandates a higher floor |
+| Compile SDK / Target SDK | API 36 (Android 16) — current installed stable platform |
+| Initial distribution | Private debug APK + GitHub Actions workflow artifact; no Play Store listing planned for the first release |
+| Supported runtime | Android device with [Termux](https://termux.dev) installed (F-Droid build, not Play Store build) |
+
+The application ID is provisional and may change before the first public release. See [`platform-support.md`](platform-support.md) for the full support policy.
