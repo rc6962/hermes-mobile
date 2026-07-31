@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import type { HermesApi } from "../lib/hermes-api";
 import {
@@ -26,6 +26,7 @@ export function SessionDrawer({ api, selectedSessionId, onSelect }: SessionDrawe
   const [state, dispatch] = useReducer(sessionStateReducer, undefined, initialSessionState);
   const [open, setOpen] = useState(false);
   const selectionRequestRef = useRef(0);
+  const autoSelectionRef = useRef(false);
   const selectedSession = state.sessions.find((session) => session.id === selectedSessionId);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export function SessionDrawer({ api, selectedSessionId, onSelect }: SessionDrawe
     };
   }, [api]);
 
-  const select = async (sessionId: string) => {
+  const select = useCallback(async (sessionId: string) => {
     const requestId = selectionRequestRef.current + 1;
     selectionRequestRef.current = requestId;
     dispatch({ type: "session_selected", sessionId });
@@ -64,7 +65,20 @@ export function SessionDrawer({ api, selectedSessionId, onSelect }: SessionDrawe
         dispatch({ type: "sessions_failed", message: safeErrorMessage(error) });
       }
     }
-  };
+  }, [api, onSelect]);
+
+  useEffect(() => {
+    if (
+      selectedSessionId ||
+      autoSelectionRef.current ||
+      state.status !== "ready" ||
+      state.sessions.length === 0
+    ) {
+      return;
+    }
+    autoSelectionRef.current = true;
+    void select(state.sessions[0].id);
+  }, [select, selectedSessionId, state.sessions, state.status]);
 
   const create = async () => {
     selectionRequestRef.current += 1;

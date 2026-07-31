@@ -37,11 +37,24 @@ describe("SessionDrawer", () => {
     expect(await screen.findByRole("button", { name: /First chat/i })).toBeInTheDocument();
   });
 
+  it("automatically selects the first available session on initial load", async () => {
+    const api = makeApi();
+    const onSelect = vi.fn();
+    render(<SessionDrawer api={api} onSelect={onSelect} />);
+
+    await waitFor(() => {
+      expect(api.getSessionMessages).toHaveBeenCalledWith("session-1");
+      expect(onSelect).toHaveBeenCalledWith("session-1", [
+        { role: "user", content: "Previous question" },
+      ]);
+    });
+  });
+
   it("lists sessions, loads history on selection, and creates a new session", async () => {
     const user = userEvent.setup();
     const api = makeApi();
     const onSelect = vi.fn();
-    render(<SessionDrawer api={api} onSelect={onSelect} />);
+    render(<SessionDrawer api={api} selectedSessionId="session-existing" onSelect={onSelect} />);
 
     await user.click(await screen.findByRole("button", { name: /toggle sessions/i }));
     const existing = await screen.findByRole("button", { name: /First chat/i });
@@ -90,7 +103,7 @@ describe("SessionDrawer", () => {
           }),
       );
     const onSelect = vi.fn();
-    render(<SessionDrawer api={api} onSelect={onSelect} />);
+    render(<SessionDrawer api={api} selectedSessionId="session-existing" onSelect={onSelect} />);
 
     await user.click(await screen.findByRole("button", { name: /toggle sessions/i }));
     await user.click(await screen.findByRole("button", { name: /First chat/i }));

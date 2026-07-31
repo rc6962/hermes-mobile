@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +46,8 @@ public class HermesStreamPlugin extends Plugin {
         if (authorization == null && headers != null) {
             authorization = headers.getString("authorization");
         }
-        if (authorization == null || authorization.isBlank()) {
+        if (authorization == null || authorization.isBlank()
+                || !authorization.regionMatches(true, 0, "Bearer ", 0, "Bearer ".length())) {
             call.reject("Hermes stream authentication is required");
             return;
         }
@@ -87,7 +89,7 @@ public class HermesStreamPlugin extends Plugin {
             connections.put(streamId, connection);
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(15_000);
-            connection.setReadTimeout(0);
+            connection.setReadTimeout(75_000);
             connection.setRequestProperty("Authorization", authorization);
             connection.setRequestProperty("Accept", "text/event-stream");
             connection.setRequestProperty("Cache-Control", "no-cache");
@@ -116,6 +118,10 @@ public class HermesStreamPlugin extends Plugin {
                 event.put("streamId", streamId);
                 notifyListeners("streamComplete", event);
             }
+        } catch (SocketTimeoutException error) {
+            if (!cancelled.contains(streamId) && !Thread.currentThread().isInterrupted()) {
+                notifyError(streamId, "Hermes event stream timed out", null);
+            }
         } catch (IOException error) {
             if (!cancelled.contains(streamId) && !Thread.currentThread().isInterrupted()) {
                 notifyError(streamId, "Hermes event stream connection failed", null);
@@ -138,6 +144,21 @@ public class HermesStreamPlugin extends Plugin {
             event.put("status", status);
         }
         notifyListeners("streamError", event);
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        cancelled.addAll(streams.keySet());
+        for (HttpURLConnection connection : connections.values()) {
+            connection.disconnect();
+        }
+        for (Future<?> future : streams.values()) {
+            future.cancel(true);
+        }
+        connections.clear();
+        streams.clear();
+        executor.shutdownNow();
+        super.handleOnDestroy();
     }
 
     static boolean isAllowedStreamUrl(String rawUrl) {
