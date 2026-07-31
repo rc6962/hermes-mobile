@@ -46,6 +46,7 @@ export function ChatView({ api, sessionId, initialMessages }: ChatViewProps) {
   const controllerRef = useRef<AbortController | undefined>(undefined);
   const startingRef = useRef(false);
   const mountedRef = useRef(true);
+  const transcriptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -76,6 +77,13 @@ export function ChatView({ api, sessionId, initialMessages }: ChatViewProps) {
     setError(undefined);
     setApprovalPending(false);
   }, [initialMessages, sessionId]);
+
+  useEffect(() => {
+    const transcript = transcriptRef.current;
+    if (transcript) {
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+  }, [error, messages.length, run.assistantText, run.status]);
 
   const busy = starting || activeRunId !== undefined;
 
@@ -178,13 +186,26 @@ export function ChatView({ api, sessionId, initialMessages }: ChatViewProps) {
 
   return (
     <section className="chat-view" aria-label="Hermes chat">
-      <div className="chat-transcript" role="log" aria-live="polite">
+      <div ref={transcriptRef} className="chat-transcript" role="log" aria-live="polite">
+        {messages.length === 0 && !run.assistantText && !error ? (
+          <div className="chat-empty-state">
+            <span className="chat-empty-state__icon" aria-hidden="true">✦</span>
+            <h2>Start a conversation</h2>
+            <p>Ask Hermes a question, request a task, or describe what you want to do.</p>
+          </div>
+        ) : null}
         {messages.map((message, index) => (
           <MessageBubble key={`${message.role}-${index}`} role={message.role}>
             {message.content}
           </MessageBubble>
         ))}
         {run.assistantText ? <MessageBubble role="assistant">{run.assistantText}</MessageBubble> : null}
+        {busy ? (
+          <p className="run-status" role="status">
+            <span className="run-status__dot" aria-hidden="true" />
+            {starting ? "Connecting to Hermes…" : run.status === "waiting_for_approval" ? "Waiting for approval…" : "Hermes is working…"}
+          </p>
+        ) : null}
         <RunActivity state={run} />
         {run.status === "waiting_for_approval" && run.approval ? (
           <section className="approval-panel" aria-label="Approval required">

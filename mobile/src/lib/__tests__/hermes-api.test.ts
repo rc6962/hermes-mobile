@@ -39,8 +39,9 @@ describe("HermesApi", () => {
     });
   });
 
-  it("uses native transport for JSON requests while keeping SSE on fetch", async () => {
+  it("uses native transport for JSON and native streaming for SSE when available", async () => {
     const nativeCalls: RecordedCall[] = [];
+    const streamCalls: RecordedCall[] = [];
     const fetchCalls: RecordedCall[] = [];
     const api = createHermesApi({
       baseUrl: "http://127.0.0.1:8642",
@@ -48,6 +49,10 @@ describe("HermesApi", () => {
       nativeHttpImpl: async (input, init) => {
         nativeCalls.push({ url: String(input), init });
         return jsonResponse({ status: "ok" });
+      },
+      nativeStreamImpl: async (input, init, onChunk) => {
+        streamCalls.push({ url: String(input), init });
+        onChunk('data: {"event":"run.completed","output":"done"}\n\n');
       },
       fetchImpl: async (input, init) => {
         fetchCalls.push({ url: String(input), init });
@@ -64,9 +69,14 @@ describe("HermesApi", () => {
     expect(nativeCalls.map((call) => call.url)).toEqual([
       "http://127.0.0.1:8642/health",
     ]);
-    expect(fetchCalls.map((call) => call.url)).toEqual([
+    expect(streamCalls.map((call) => call.url)).toEqual([
       "http://127.0.0.1:8642/v1/runs/run-1/events",
     ]);
+    expect(fetchCalls).toEqual([]);
+    expect(streamCalls[0].init?.headers).toEqual({
+      Authorization: "Bearer test-api-key",
+      Accept: "text/event-stream",
+    });
   });
 
   it("creates a run from input and optional session id", async () => {
@@ -99,20 +109,27 @@ describe("HermesApi", () => {
 
   it("streams structured run events and tolerates keepalives", async () => {
     const events: unknown[] = [];
+    const calls: RecordedCall[] = [];
     const api = createHermesApi({
       baseUrl: "http://127.0.0.1:8642",
       apiKey: "test-api-key",
-      fetchImpl: async () =>
-        new Response(
+      fetchImpl: async (input, init) => {
+        calls.push({ url: String(input), init });
+        return new Response(
           ': keepalive\n\n' +
             'data: {"event":"message.delta","text":"Hello"}\n\n' +
             'data: {"event":"run.completed","output":"Hello"}\n\n',
           { headers: { "Content-Type": "text/event-stream" } },
-        ),
+        );
+      },
     });
 
     await api.subscribeToRun("run-1", (event) => events.push(event));
 
+    expect(calls[0].init?.headers).toEqual({
+      Authorization: "Bearer test-api-key",
+      Accept: "text/event-stream",
+    });
     expect(events).toEqual([
       { event: "message.delta", text: "Hello" },
       { event: "run.completed", output: "Hello" },

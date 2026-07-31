@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 
 import type { HermesApi } from "../lib/hermes-api";
 import {
@@ -24,6 +24,9 @@ function safeErrorMessage(error: unknown): string {
 
 export function SessionDrawer({ api, selectedSessionId, onSelect }: SessionDrawerProps) {
   const [state, dispatch] = useReducer(sessionStateReducer, undefined, initialSessionState);
+  const [open, setOpen] = useState(false);
+  const selectionRequestRef = useRef(0);
+  const selectedSession = state.sessions.find((session) => session.id === selectedSessionId);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,20 +49,30 @@ export function SessionDrawer({ api, selectedSessionId, onSelect }: SessionDrawe
   }, [api]);
 
   const select = async (sessionId: string) => {
+    const requestId = selectionRequestRef.current + 1;
+    selectionRequestRef.current = requestId;
     dispatch({ type: "session_selected", sessionId });
     try {
       const response = await api.getSessionMessages(sessionId);
+      if (selectionRequestRef.current !== requestId) {
+        return;
+      }
       onSelect(sessionId, normalizeSessionMessages(response.data));
+      setOpen(false);
     } catch (error) {
-      dispatch({ type: "sessions_failed", message: safeErrorMessage(error) });
+      if (selectionRequestRef.current === requestId) {
+        dispatch({ type: "sessions_failed", message: safeErrorMessage(error) });
+      }
     }
   };
 
   const create = async () => {
+    selectionRequestRef.current += 1;
     try {
       const session = await api.createSession({ title: "New chat" });
       dispatch({ type: "session_created", session });
       onSelect(session.id, []);
+      setOpen(false);
     } catch (error) {
       dispatch({ type: "sessions_failed", message: safeErrorMessage(error) });
     }
@@ -68,31 +81,48 @@ export function SessionDrawer({ api, selectedSessionId, onSelect }: SessionDrawe
   return (
     <aside className="session-drawer" aria-label="Sessions">
       <div className="session-drawer__header">
-        <h2>Sessions</h2>
+        <button
+          type="button"
+          className="session-drawer__toggle"
+          aria-label="Toggle sessions"
+          aria-expanded={open}
+          aria-controls="session-list"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span>Sessions</span>
+          <span className="session-drawer__current">
+            {selectedSession ? displayTitle(selectedSession) : "Choose a conversation"}
+          </span>
+          <span aria-hidden="true">{open ? "⌃" : "⌄"}</span>
+        </button>
         <button type="button" onClick={() => void create()} aria-label="New session">
           +
         </button>
       </div>
       {state.status === "loading" ? <p className="muted">Loading sessions…</p> : null}
       {state.error ? <p role="alert" className="chat-error">{state.error}</p> : null}
-      {state.sessions.length === 0 && state.status !== "loading" ? (
-        <p className="muted">No saved sessions yet.</p>
+      {open ? (
+        <div id="session-list" className="session-drawer__list">
+          {state.sessions.length === 0 && state.status !== "loading" ? (
+            <p className="muted">No saved sessions yet.</p>
+          ) : null}
+          <ul>
+            {state.sessions.map((session) => (
+              <li key={session.id}>
+                <button
+                  type="button"
+                  className={selectedSessionId === session.id ? "session-drawer__item session-drawer__item--selected" : "session-drawer__item"}
+                  aria-pressed={selectedSessionId === session.id}
+                  onClick={() => void select(session.id)}
+                >
+                  <span>{displayTitle(session)}</span>
+                  {typeof session.message_count === "number" ? <small>{session.message_count}</small> : null}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
-      <ul>
-        {state.sessions.map((session) => (
-          <li key={session.id}>
-            <button
-              type="button"
-              className={selectedSessionId === session.id ? "session-drawer__item session-drawer__item--selected" : "session-drawer__item"}
-              aria-pressed={selectedSessionId === session.id}
-              onClick={() => void select(session.id)}
-            >
-              <span>{displayTitle(session)}</span>
-              {typeof session.message_count === "number" ? <small>{session.message_count}</small> : null}
-            </button>
-          </li>
-        ))}
-      </ul>
     </aside>
   );
 }

@@ -36,6 +36,18 @@ describe("ChatView", () => {
     expect(screen.getByText("Say hello")).toBeInTheDocument();
   });
 
+  it("sends a prompt with Enter from the composer", async () => {
+    const user = userEvent.setup();
+    const api = makeApi();
+    render(<ChatView api={api} />);
+
+    const input = screen.getByRole("textbox", { name: /message/i });
+    await user.type(input, "Enter send");
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => expect(api.startRun).toHaveBeenCalledWith({ input: "Enter send" }));
+  });
+
   it("does not create a second run while the first run is being created", async () => {
     const user = userEvent.setup();
     let releaseStart: ((value: { runId: string; status: string }) => void) | undefined;

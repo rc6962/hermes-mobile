@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
         // BridgeActivity consumes these registrations during super.onCreate().
         registerPlugin(TermuxLifecyclePlugin.class);
         registerPlugin(SecureCredentialsPlugin.class);
+        registerPlugin(HermesStreamPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

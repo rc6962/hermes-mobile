@@ -1,3 +1,4 @@
+import { getNativeStreamImplementation, type NativeStreamImplementation } from "./native-stream";
 import { getNativeHttpImplementation, type NativeHttpImplementation } from "./native-http";
 import { createSseParser, type SseEvent } from "./sse";
 import type {
@@ -24,6 +25,7 @@ export interface HermesApiOptions {
   sessionKey?: string;
   fetchImpl?: FetchImplementation;
   nativeHttpImpl?: NativeHttpImplementation;
+  nativeStreamImpl?: NativeStreamImplementation;
 }
 
 export class HermesApiError extends Error {
@@ -77,6 +79,7 @@ export function createHermesApi(options: HermesApiOptions) {
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   const fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
   const nativeHttpImpl = options.nativeHttpImpl ?? getNativeHttpImplementation();
+  const nativeStreamImpl = options.nativeStreamImpl ?? getNativeStreamImplementation();
 
   const headers = (hasJsonBody = false): Record<string, string> => {
     const result: Record<string, string> = {};
@@ -145,37 +148,47 @@ export function createHermesApi(options: HermesApiOptions) {
       onEvent: (event: SseEvent) => void,
       signal?: AbortSignal,
     ): Promise<void> {
-      const response = await fetchImpl(
-        `${baseUrl}/v1/runs/${encodeURIComponent(runId)}/events`,
-        { headers: headers(), signal },
-      );
-      if (!response.ok) {
-        throw await errorFromResponse(response);
-      }
-      if (!response.body) {
-        throw new HermesApiError(502, "Hermes API returned an empty event stream");
-      }
-
+      const streamUrl = `${baseUrl}/v1/runs/${encodeURIComponent(runId)}/events`;
+      const streamInit: RequestInit = {
+        headers: {
+          ...headers(),
+          Accept: "text/event-stream",
+        },
+        signal,
+      };
       const parseErrors: Error[] = [];
       const parser = createSseParser({
         onEvent,
         onError: (error) => parseErrors.push(error),
       });
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
 
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            parser.push(decoder.decode());
-            parser.end();
-            break;
-          }
-          parser.push(decoder.decode(value, { stream: true }));
+      if (nativeStreamImpl) {
+        await nativeStreamImpl(streamUrl, streamInit, (chunk) => parser.push(chunk));
+        parser.end();
+      } else {
+        const response = await fetchImpl(streamUrl, streamInit);
+        if (!response.ok) {
+          throw await errorFromResponse(response);
         }
-      } finally {
-        reader.releaseLock();
+        if (!response.body) {
+          throw new HermesApiError(502, "Hermes API returned an empty event stream");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              parser.push(decoder.decode());
+              parser.end();
+              break;
+            }
+            parser.push(decoder.decode(value, { stream: true }));
+          }
+        } finally {
+          reader.releaseLock();
+        }
       }
 
       if (parseErrors.length > 0) {

@@ -252,13 +252,44 @@ h2 {
   font-size: 0.95rem;
 }
 
-.session-drawer__header button {
+.session-drawer__header > button:last-child {
   width: 2rem;
   height: 2rem;
   padding: 0;
   border-radius: 0.6rem;
   font-size: 1.2rem;
   line-height: 1;
+}
+
+.session-drawer__toggle {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  color: #dbeafe;
+  background: rgba(30, 41, 59, 0.55);
+  text-align: left;
+}
+
+.session-drawer__toggle > span:first-child {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.session-drawer__current {
+  overflow: hidden;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-drawer__list {
+  max-height: min(55vh, 28rem);
+  overflow-y: auto;
 }
 
 .session-drawer ul {
@@ -312,6 +343,68 @@ h2 {
   gap: 0.85rem;
   overflow-y: auto;
   padding: 0.25rem 0 1rem;
+}
+
+.chat-empty-state {
+  display: grid;
+  min-height: 18rem;
+  place-content: center;
+  justify-items: center;
+  padding: 2rem;
+  color: #cbd5e1;
+  text-align: center;
+}
+
+.chat-empty-state__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  margin-bottom: 0.8rem;
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  border-radius: 1rem;
+  color: #bfdbfe;
+  background: rgba(30, 64, 175, 0.28);
+  font-size: 1.4rem;
+  box-shadow: 0 0 1.6rem rgba(37, 99, 235, 0.18);
+}
+
+.chat-empty-state h2 {
+  margin-bottom: 0.35rem;
+  color: #f8fafc;
+}
+
+.chat-empty-state p {
+  max-width: 24rem;
+  margin: 0;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.run-status {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  color: #93c5fd;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.run-status__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #60a5fa;
+  box-shadow: 0 0 0.7rem #60a5fa;
+  animation: hermes-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes hermes-pulse {
+  0%,
+  100% { opacity: 0.45; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 .message-bubble {
@@ -376,8 +469,18 @@ h2 {
   color: #64748b;
 }
 
+.composer__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #64748b;
+  font-size: 0.7rem;
+}
+
 .composer__actions {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
   gap: 0.5rem;
 }
@@ -473,6 +576,10 @@ h2 {
 
   .connection-status {
     white-space: nowrap;
+  }
+
+  .composer__footer > span {
+    display: none;
   }
 }
 
