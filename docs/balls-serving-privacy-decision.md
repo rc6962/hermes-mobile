@@ -10,7 +10,7 @@
 ## Decision
 
 1. **Default serving = Cloud Podule** (`balls-cloud-core`), hosted on a **dedicated inference box** (Linveo TX, 16GB/6c — inference ONLY). **Hermes agent runs on the phone itself** (embedded/Termux); V2 (`voice.epictechservices.com`) hosts the phone dashboard/console. The box is a dumb model endpoint: no agent runtime, no sessions, no dashboard, no persistent state. The app's default answer path is Epic infrastructure, never a third-party API.
-2. **Both Cloud Podules AND the Local Podule are paid.** Free tier "Balls Deep" = core chat via the default cloud podule (rate-limited). Paid "Whole Balls" = all podules (cloud premium + phone).
+2. **Tiers (locked 2026-08-16):** **Free Balling** = Balls of Steel Mode (local-only tiny model, slow, no cloud, no phone — zero cost to Epic). **Balls Lightning** = Cloud Podule access (fast cloud path), quota'd ~30 msgs/day. **Balls Deep** = Phone Podule (full on-device model — fast/private/offline) + cloud + everything. Legacy "Whole Balls" umbrella retired.
 3. **Local Podule** = on-device model (Gemma 4 E2B, 4-bit, llama.cpp in-process — see `balls-local-models.md` consult) — the offline/privacy tier.
 4. **Privacy model = "we physically can't see your chats" via architecture, not scrambling.** No prompt encryption (FHE is research-stage, not consumer-viable in 2026 — Cachemir arXiv 2602.11470 is the first practical FHE KV-cache protocol and still not shippable). The claim is backed by: Epic-hosted inference, ephemeral-by-design server, client-side PII scrubbing, and a no-content-logging policy.
 
@@ -46,8 +46,9 @@ Podule {
 }
 ```
 
-- Free: `balls-cloud-core` only, quota'd (e.g. 30 msgs/day, resets UTC midnight).
-- Whole Balls: `balls-cloud-premium` (bigger/faster model when V2 upgrade or second box) + `balls-phone`.
+- Free Balling: `balls-of-steel` only (bundled tiny local model; no network egress at all).
+- Balls Lightning: + `balls-cloud-core` — Cloud Podule = our standard inference on Epic hardware (qwen3-8b-q8; GPU dedi planned → fast + private). Proxied deepseek-v4-flash route = **internal overflow fallback only** (not a tier; invisible to users, scrubbed, capped ~20% of traffic to bound per-token cost). Quota'd ~30 msgs/day, resets UTC midnight.
+- Balls Deep: + `balls-phone` (full on-device model) + `balls-cloud-premium` (bigger/faster model when VPS upgraded or second box added).
 - Entitlement source: Google Play Billing receipt verified server-side; store a local unlock token (Android Keystore). Wave/Stripe only for non-Play sales.
 
 ## Privacy pipeline (the claim's engineering)

@@ -24,10 +24,10 @@ public class ManagedRuntimePlugin extends Plugin {
     private static final String TAG = "ManagedRuntime";
     private static final String HERMES_HOME_DIR = "balls-home";
 
-    /** Local Podule model: Qwen3 0.6B 4-bit (decided fallback tier). */
-    private static final String LOCAL_MODEL_FILE = "qwen3-0.6b-q4_k_m.gguf";
+    /** Local Podule model: Qwen3 0.6B 8-bit (decided fallback tier). */
+    private static final String LOCAL_MODEL_FILE = "Qwen3-0.6B-Q8_0.gguf";
     private static final String LOCAL_MODEL_URL =
-            "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/qwen3-0.6b-q4_k_m.gguf";
+            "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf";
 
     @PluginMethod
     public void start(PluginCall call) {

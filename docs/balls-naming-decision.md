@@ -30,11 +30,13 @@ The Android AI chat app will be named **Balls**.
 - "Balls Overflow Error"
 - "Out of Balls"
 - "That's outside the Balls"
-- "Balls Deep" (free tier name)
+- "Balls Deep" (top tier name)
 
-**Paid tiers:**
-- Free: "Balls Deep" (core chat)
-- Paid: "Whole Balls" (all podules unlocked)
+**Tiers (locked 2026-08-16):**
+- **Free — "Free Balling"**: restricted to **Balls of Steel Mode** — local-only tiny model (Qwen3-0.6B / SmolLM 1B class, bundled), slow, chat-only, no phone, zero cloud.
+- **Mid — "Balls Lightning"**: Cloud Podule = our inference on Epic hardware (standard model now; fast once GPU dedi lands). Proxied DeepSeek route = internal overflow fallback only, not a tier. Quota'd ~30 msgs/day. Tagline: *"passes through walls."* (Named for the atmospheric phenomenon — rare, fast, vanishes; Cixin Liu novel of the same name.)
+- **Top — "Balls Deep"**: **Phone Podule** (full on-device model — fast, private, offline) + cloud + everything. The only tier delivering the complete brand promise (fast AND private AND offline).
+- **"Whole Balls"** = superseded paid-umbrella name; optional annual-bundle name if needed later.
 
 **Icon direction:** Solid orb/sphere — confident, geometric, zero ambiguity. Make it feel like a ball, not a joke.
 
