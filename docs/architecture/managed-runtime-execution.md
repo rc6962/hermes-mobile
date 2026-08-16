@@ -57,6 +57,19 @@ The Rust-native plan in the earlier version of this file is withdrawn as the pri
 
 Consulting Terra on the revised direction produced a dissent: Terra recommends a native Rust core over Chaquopy embedding, citing wheel brittleness, APK bloat, and background limits. The dissent was evaluated and overruled on requirement grounds: a native core cannot deliver full Hermes parity + continuous updates (the owner's explicit requirement); it is a permanent reimplementation treadmill. The only self-contained path that runs *real* Hermes is embedding it. Feasibility evidence favoring Chaquopy: Hermes already runs on the S24 Ultra today via Termux (same ARM64/bionic/pip environment). Terra's valid points were adopted instead: hybrid update channel (Play default + opt-in signed in-app Hermes updates with rollback), arm64-first ABI splits, foreground-only execution, thin IPC surface.
 
+## Full 4-model review of the Chaquopy revision (2026-08-16)
+
+Same revised brief, all `-thinking` variants:
+
+- **Kimi K3 — supports the revision.** Parity + continuous updates require shipping real Hermes; a Rust reimplementation cannot match runtime compatibility, plugins, and wheel-based upgrades. Adds: signed in-app Hermes updates for v1 (faster than Play cadence), version-pinned environment, foreground service.
+- **Terra — opposes.** Native Rust core preferred; embedding is brittle. (See dissent above.)
+- **GLM 5.2 — opposes.** Cites dependency brittleness and APK churn; recommends a clean-room native core behind a stable IPC. Same treadmill objection applies.
+- **Claude Sonnet 5 — conditional.** "Not clearly right" but acceptable *if* robust update/rollback and size management are committed; otherwise prefers Rust.
+
+Pattern: all three dissenters optimize engineering cleanliness and each recommends the Rust clone, which cannot meet the owner's parity/update requirement; only Kimi re-derived the answer from the requirement itself. 
+
+**Adopted from the review:** 4/4 consensus on hybrid updates (Play for the app shell; signed in-app Hermes wheel swaps with rollback for agents); Kimi's v1 signed in-app update preference; version-pinned embedded environment; feature flags for staged Hermes capability rollout.
+
 ## Open decisions for Rick
 
 - Arm64-only first release vs. full ABI coverage (size vs. device reach).
