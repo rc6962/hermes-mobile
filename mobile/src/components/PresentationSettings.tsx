@@ -1,13 +1,23 @@
 import { useState } from "react";
 
+import { RuntimeSettings } from "./RuntimeSettings";
+import type { RuntimeKind } from "../lib/runtime/create-runtime-client";
+
 import type { PresentationPreferences } from "../lib/presentation-preferences";
 
 export interface PresentationSettingsProps {
   preferences: PresentationPreferences;
   onChange: (preferences: PresentationPreferences) => void;
+  runtimeKind: RuntimeKind;
+  onRuntimeKindChange: (kind: RuntimeKind) => void;
 }
 
-export function PresentationSettings({ preferences, onChange }: PresentationSettingsProps) {
+export function PresentationSettings({
+  preferences,
+  onChange,
+  runtimeKind,
+  onRuntimeKindChange,
+}: PresentationSettingsProps) {
   const [open, setOpen] = useState(false);
 
   const selectTheme = (theme: PresentationPreferences["theme"]) => {
@@ -95,6 +105,9 @@ export function PresentationSettings({ preferences, onChange }: PresentationSett
             <section className="presentation-settings__section presentation-settings__coming-soon">
               <h3>More controls are next</h3>
               <p>Model, provider, runtime, privacy, and Advanced Hermes settings will appear here in subsequent slices.</p>
+            </section>
+            <section className="presentation-settings__section">
+              <RuntimeSettings kind={runtimeKind} onKindChange={onRuntimeKindChange} />
             </section>
           </section>
         </div>

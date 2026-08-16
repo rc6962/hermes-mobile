@@ -10,8 +10,8 @@
 ## Decision
 
 1. **Default serving = Cloud Podule** (`balls-cloud-core`), hosted on Epic's own VPS (Linveo V2, Texas, `voice.epictechservices.com`, 4c/8GB). The app's default answer path is Epic infrastructure, never a third-party API.
-2. **Both Cloud Podules AND the Phone Podule are paid.** Free tier "Balls Deep" = core chat via the default cloud podule (rate-limited). Paid "Whole Balls" = all podules (cloud premium + phone).
-3. **Phone Podule** = on-device model (Gemma 4 E2B, 4-bit, llama.cpp in-process — see `balls-local-models.md` consult) — the offline/privacy tier.
+2. **Both Cloud Podules AND the Local Podule are paid.** Free tier "Balls Deep" = core chat via the default cloud podule (rate-limited). Paid "Whole Balls" = all podules (cloud premium + phone).
+3. **Local Podule** = on-device model (Gemma 4 E2B, 4-bit, llama.cpp in-process — see `balls-local-models.md` consult) — the offline/privacy tier.
 4. **Privacy model = "we physically can't see your chats" via architecture, not scrambling.** No prompt encryption (FHE is research-stage, not consumer-viable in 2026 — Cachemir arXiv 2602.11470 is the first practical FHE KV-cache protocol and still not shippable). The claim is backed by: Epic-hosted inference, ephemeral-by-design server, client-side PII scrubbing, and a no-content-logging policy.
 
 ---
@@ -21,17 +21,18 @@
 Resolver order when a message is sent:
 
 ```
-1. If entitlement has Phone Podule AND phone podule model is installed:
+1. If entitlement has Local Podule AND local podule model is installed:
    → route to local llama.cpp (in-process, Chaquopy bridge)      [offline, zero egress]
 2. Else (default): Cloud Podule → Epic proxy
    → https://voice.epictechservices.com/v1/chat/completions      [TLS 1.3, cert-pinned]
-3. If cloud unreachable AND phone podule not installed:
-   → friendly error: "Balls is out of range. Install the Phone Podule (Whole Balls)
+3. If cloud unreachable AND local podule not installed:
+   → friendly error: "Balls is out of range. Install the Local Podule (Whole Balls)
      to talk offline."
 ```
 
-- Default = Cloud Podule. Phone Podule = user-visible choice ("Talk with the Phone Podule — 100% offline") on Whole Balls.
+- Default = Cloud Podule. Local Podule = user-visible choice ("Talk with the Local Podule — 100% offline") on Whole Balls.
 - Model on V2: `Qwen3-8B Q4_K_M` (or Qwen3-4B if 8B too slow on 4c/8GB) via llama.cpp server, `--no-webui`, single model, small context. Verify tok/s on device before locking final.
+- **⚠️ V2 coexists with the phone system + phone dashboard (Hermes console).** Deployment decision: **preferred = separate Balls inference box** (clean isolation, 8B fits, zero risk to phone system); **accepted fallback = share V2 with Qwen3-4B Q4 only** (~2.5-3.5GB — an 8B Q4 risks OOM-killing the phone system on 8GB). All no-log measures below are SCOPED to the podule path — never apply them globally (phone system/dashboard need persistent Hermes state + logs).
 - Proxy = lightweight OpenAI-compatible shim (llama.cpp server already exposes `/v1`). No auth passthrough to any third party — the ONLY upstream is the local model on the VPS.
 
 ## Podule Registry (app module)
@@ -54,7 +55,7 @@ Podule {
 Client (app) → wire → Epic proxy → model. Rules at each layer:
 
 **Client (on-device):**
-- PII scrubber runs BEFORE any egress: regex + blocklist replaces emails, phone numbers, street addresses, SSN/card patterns, and user-defined "never send" terms with placeholders (`[EMAIL]`, `[PHONE]`, …). Default ON for paid tier; toggle available.
+- **Entity substitution (the scramble that works)**: before ANY egress, a substitution pass replaces sensitive entities — emails, phone numbers, street addresses, SSN/card patterns, names from the local contacts/identity list, and user-defined "never send" terms — with random opaque tokens (`X7Q2Z`, `M3RKL`, …). The response is re-substituted back on-device after delivery. Result: the bytes on the wire and at the server are meaningless to anyone but the user's phone — the practical equivalent of encrypting the query, without FHE's 1000x slowdown. Default ON for paid tier; toggle available. (Regex + blocklist pass for obvious patterns, on-device model assist optional later.)
 - Conversation history stored ONLY on device, encrypted (Android Keystore, AES-GCM). Nothing in the cloud, ever.
 - Per-device API token (rotating, 30-day), request signing (HMAC-SHA256 over body + timestamp). No API key baked into the APK.
 
@@ -66,6 +67,7 @@ Client (app) → wire → Epic proxy → model. Rules at each layer:
 - Stateless by design: conversation bodies live in an in-memory session buffer with 15-minute TTL, zero disk writes of prompt/response text.
 - Logs = metrics only: anonymous session hash, token counts, latency, model. NO prompt/response bodies in any log, no access-log of chat payloads (disable nginx access log for `/v1/chat/completions`).
 - Server RAM is wiped on reboot by design (tmpfs for session buffer); no persistent store exists to leak.
+- **Hardening (encryption at rest + containment)**: `swapoff` (no swap file to leak RAM — only if the box isn't relying on swap; check first), `mlock` the model/session memory, `ulimit -c 0` (no core dumps), tmpfs only for podule chat state, LUKS-encrypted secondary volume if Linveo offers one, firewall + fail2ban + no remote root login. **Scoped claim: if the podule's box is ever seized, there is nothing to read *about Balls*** — no disk state, no logs, RAM gone on power-off. (On a shared box, the phone system's own Hermes state lives on disk by design — that's Epic's data, not Balls user data.)
 - Upstream = the local llama.cpp process only. No third-party API ever in the chat path.
 
 **If a third-party API is ever added (deferred, requires re-decision):**
@@ -75,21 +77,22 @@ Client (app) → wire → Epic proxy → model. Rules at each layer:
 
 | Claim | Status |
 |---|---|
-| "Your chats never leave your phone" (Phone Podule) | ✅ TRUE — fully offline |
+| "Your chats never leave your phone" (Local Podule) | ✅ TRUE — fully offline |
 | "Your chats go to our servers, not a third party" | ✅ TRUE — self-hosted inference |
 | "We don't log your conversation content" | ✅ TRUE — by architecture (metrics only) |
-| "Not even we can see your chats" | ⚠️ Only for Phone Podule — Cloud Podule is processed on Epic's VPS by design |
+| "What leaves your phone is scrambled — your real names, numbers, addresses never exist outside your phone" | ✅ TRUE — entity substitution, default ON |
+| "Not even we can see your chats" | ⚠️ Only for Local Podule — Cloud Podule is processed on Epic's VPS by design |
+| "Even the server host can't read your chats (hardware-verified)" | ❌ NOT NOW — needs TEE hardware (Azure Confidential VM / NVIDIA confidential GPU, attestation-gated). Production-mature in 2026; revisit if we leave Linveo or Balls gets regulated/enterprise users |
 | "Your queries are encrypted/scrambled so no one can read them" | ❌ NOT CLAIMABLE — FHE not consumer-viable in 2026; don't put this in marketing |
-| "Hardware-enforced confidentiality (TEE)" | ❌ NOT NOW — needs SEV-SNP/TDX hardware; revisit if we move off Linveo |
 
 ## Dev wiring checklist
 
 - [ ] Podule Registry module (entitlement + status + resolver logic above)
-- [ ] PII scrubber (`src/lib/pii-scrub.ts`) — runs pre-egress, default ON
+- [ ] Entity substitution module (`src/lib/entity-sub.ts`) — pre-egress substitution + post-response restore, default ON
 - [ ] On-device encrypted history store (Keystore AES-GCM)
 - [ ] TLS pinning + signed requests + rotating device token
 - [ ] Cloud client → `https://voice.epictechservices.com/v1/chat/completions` (OpenAI-compatible)
-- [ ] Phone Podule bridge → llama.cpp in-process (Chaquopy ctypes/JNI spike first)
+- [ ] Local Podule bridge → llama.cpp in-process (Chaquopy ctypes/JNI spike first)
 - [ ] Play Billing integration + server-side receipt verification → unlock token
 - [ ] Quota enforcement for free tier (30 msgs/day, device-local counter + server counter)
 

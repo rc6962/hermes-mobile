@@ -49,6 +49,25 @@ RuntimeClient (TS)                 mobile/src/lib/runtime/RuntimeClient.ts
 4. **Play policy on embedded runtimes** → transparent disclosures; data stays on-device; no background automation initially (foreground/user-initiated only).
 5. **Android-bridge parity between modes** → same plugin + protocol in both; regression test both paths.
 
+## Podule naming (corrected 2026-08-16)
+
+An earlier agent misconstrued the name "Phone Podule". Authoritative mapping:
+
+- **Phone Podule** = the ability to **make calls** — telephony podule: dialer, call handling, voicemail, the phone bridge. Owned by the voice system (see `D:\Hermes\direct-sip-agent\docs\AGENT-COMMS.md` — tenant auth, app dashboard, token handshake).
+- **Local Podule** = on-device model (Gemma 4 E2B 4-bit, llama.cpp in-process — `balls-local-models.md`) — the offline/privacy chat tier. NOT a call feature.
+- **Cloud Podule** = Epic's VPS inference (epic proxy → local llama.cpp, no-logging contract).
+
+## Runtime kinds (product)
+
+| Kind | What runs the agent | Status |
+|---|---|---|
+| `termux` | Existing Hermes in Termux (advanced mode) | ✅ shipping today |
+| `managed` | Embedded Hermes (Chaquopy) — the self-contained product | 🔄 M3/M4 (spike) |
+| `remote` (self-hosted) | Hermes gateway on the user's own server (VPS/home) or Epic's cloud (Cloud Podule) | 📝 planned — reuses RuntimeClient/HermesApi; requires transport-policy opt-in for non-loopback URLs + Keystore key slot (new alias) |
+| `local` (Local Podule) | Embedded Hermes + **on-device llama.cpp** (Gemma 4 E2B 4-bit default; Qwen3 1.7B tool alt; Qwen3 0.6B/SmolLM fallback) — fully offline | 📝 decided (`balls-local-models.md`) — NOT a new runtime kind: it is `managed` with a local llama.cpp provider in `provider_json`; requires libllama Android arm64 .so + llama-cpp-python vendored (spike later, post M4) |
+
+Self-hosted/cloud mode: user-entered base URL (http/https, validated) + API key stored in Android Keystore; explicit confirmation that traffic leaves the device; TLS recommended. Phone-local mode: models download at onboarding (GGUF ~0.3–1.5GB), persona preloaded in KV cache, hybrid routing (local default, cloud opt-in per `balls-serving-privacy-decision.md`).
+
 ## Update flow (concrete, accepted 2026-08-16)
 
 The abstract W4 design is now concretized by the in-repo wheel store:

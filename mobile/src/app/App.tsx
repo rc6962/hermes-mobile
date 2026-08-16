@@ -8,7 +8,8 @@ import { PairingView } from "../components/PairingView";
 import { PresentationSettings } from "../components/PresentationSettings";
 import { SessionDrawer } from "../components/SessionDrawer";
 import { apiKeyStore, type ApiKeyStore } from "../lib/credentials";
-import { createRuntimeClient } from "../lib/runtime/create-runtime-client";
+import { createRuntimeClient, type RuntimeKind } from "../lib/runtime/create-runtime-client";
+import { loadRuntimeKind, saveRuntimeKind } from "../lib/runtime/runtime-preferences";
 import { createAttachmentAdapterClient } from "../lib/attachment-adapter-client";
 import { androidBridge, type AndroidBridgeAdapter, type AndroidBridgeStatus } from "../lib/android-bridge";
 import { runTermuxLifecycle, type LifecycleAction } from "../lib/lifecycle-actions";
@@ -60,9 +61,16 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
     };
   }, [credentialStore]);
 
+  const [presentationPreferences, setPresentationPreferences] = useState(loadPresentationPreferences);
+  const [runtimeKind, setRuntimeKind] = useState<RuntimeKind>(loadRuntimeKind);
+
+  useEffect(() => {
+    saveRuntimeKind(runtimeKind);
+  }, [runtimeKind]);
+
   const api = useMemo(
-    () => createRuntimeClient({ kind: "termux", baseUrl: apiUrl, apiKey: apiKey || "" }),
-    [apiKey, apiUrl],
+    () => createRuntimeClient({ kind: runtimeKind, baseUrl: apiUrl, apiKey: apiKey || "" }),
+    [apiKey, apiUrl, runtimeKind],
   );
   const attachmentAdapter = useMemo(
     () =>
@@ -78,7 +86,6 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   const [bridgeStatus, setBridgeStatus] = useState<AndroidBridgeStatus>();
   const [bridgeLoading, setBridgeLoading] = useState(false);
   const [bridgeError, setBridgeError] = useState<string>();
-  const [presentationPreferences, setPresentationPreferences] = useState(loadPresentationPreferences);
 
   useEffect(() => {
     savePresentationPreferences(presentationPreferences);
@@ -187,6 +194,8 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
           <PresentationSettings
             preferences={presentationPreferences}
             onChange={updatePresentationPreferences}
+            runtimeKind={runtimeKind}
+            onRuntimeKindChange={setRuntimeKind}
           />
           {credentialsReady && apiKey ? (
             <button type="button" className="app-header__forget" onClick={() => void forgetPairing()}>

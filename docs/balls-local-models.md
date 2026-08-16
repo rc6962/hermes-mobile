@@ -10,7 +10,7 @@
 
 | Role | Pick | Weights | Total RAM |
 |---|---|---|---|
-| **Phone Podule (default)** | Gemma 4 E2B, 4-bit GGUF | ~1.0–1.5GB | ~2.0–2.9GB |
+| **Local Podule (default)** | Gemma 4 E2B, 4-bit GGUF | ~1.0–1.5GB | ~2.0–2.9GB |
 | Tool-calling alt | Qwen3 1.7B, 4-bit GGUF | ~0.7–0.9GB | ~1.8–2.4GB |
 | Low-RAM fallback (4GB phones) | Qwen3 0.6B / SmolLM ~1B, 4-bit | ~0.3–0.7GB | ~0.7–1.5GB |
 
