@@ -1,4 +1,4 @@
-import type { HermesApiOptions } from "../hermes-api";
+import type { BallsApiOptions } from "../balls-api";
 import type { RuntimeClient } from "./RuntimeClient";
 import { createTermuxRuntimeClient } from "./termux-runtime-client";
 import { createManagedRuntimeClient } from "./managed-runtime-client";
@@ -7,8 +7,8 @@ import { createManagedRuntimeClient } from "./managed-runtime-client";
  * Runtime selection dispatcher (composition root helper).
  *
  * `createRuntimeClient` returns the active RuntimeClient for the chosen
- * runtime kind: "termux" (existing Hermes gateway in Termux) or "managed"
- * (embedded Hermes via Chaquopy, spike M3).
+ * runtime kind: "termux" (existing Balls gateway in Termux) or "managed"
+ * (embedded Balls via Chaquopy, spike M3).
  */
 export type RuntimeKind = "termux" | "managed";
 
@@ -19,7 +19,7 @@ export interface ManagedRuntimeOptions {
 }
 
 export type CreateRuntimeClientOptions =
-  | ({ kind: "termux" } & HermesApiOptions)
+  | ({ kind: "termux" } & BallsApiOptions)
   | ManagedRuntimeOptions;
 
 export function createRuntimeClient(options: CreateRuntimeClientOptions): RuntimeClient {

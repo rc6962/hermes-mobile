@@ -27,7 +27,7 @@ import org.json.JSONObject;
 public class NativeHostService extends Service {
     private static final String TAG = "NativeHostService";
 
-    public static final String EXTRA_HERMES_HOME = "hermesHome";
+    public static final String EXTRA_HERMES_HOME = "ballsHome";
     public static final String EXTRA_API_KEY = "apiKey";
     public static final String EXTRA_PROVIDER_JSON = "providerJson";
 
@@ -60,19 +60,19 @@ public class NativeHostService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         enterForeground(NOTIFICATION_ID, buildNotification());
 
-        String hermesHome = intent != null ? intent.getStringExtra(EXTRA_HERMES_HOME) : null;
+        String ballsHome = intent != null ? intent.getStringExtra(EXTRA_HERMES_HOME) : null;
         String apiKey = intent != null ? intent.getStringExtra(EXTRA_API_KEY) : null;
         String providerJson = intent != null ? intent.getStringExtra(EXTRA_PROVIDER_JSON) : null;
 
-        if (hermesHome == null || apiKey == null || apiKey.isEmpty()) {
+        if (ballsHome == null || apiKey == null || apiKey.isEmpty()) {
             sRunning = false;
-            sLastError = "Missing runtime extras (hermesHome/apiKey)";
+            sLastError = "Missing runtime extras (ballsHome/apiKey)";
             Log.e(TAG, sLastError);
             stopSelf();
             return START_NOT_STICKY;
         }
 
-        Thread worker = new Thread(() -> startRuntime(hermesHome, apiKey, providerJson), "balls-runtime-start");
+        Thread worker = new Thread(() -> startRuntime(ballsHome, apiKey, providerJson), "balls-runtime-start");
         worker.start();
         return START_NOT_STICKY;
     }
@@ -117,7 +117,7 @@ public class NativeHostService extends Service {
         }
     }
 
-    private void startRuntime(String hermesHome, String apiKey, String providerJson) {
+    private void startRuntime(String ballsHome, String apiKey, String providerJson) {
         synchronized (START_LOCK) {
             if (sStarting) {
                 return;
@@ -128,7 +128,7 @@ public class NativeHostService extends Service {
             Python.start(new AndroidPlatform(this));
             Python py = Python.getInstance();
             pyModule = py.getModule("balls_runtime");
-            PyObject result = pyModule.callAttr("start_runtime", hermesHome, apiKey, DEFAULT_PORT, providerJson);
+            PyObject result = pyModule.callAttr("start_runtime", ballsHome, apiKey, DEFAULT_PORT, providerJson);
             JSONObject status = parseResult(py, result);
             boolean ok = status.optBoolean("ok", false);
             sRunning = ok;

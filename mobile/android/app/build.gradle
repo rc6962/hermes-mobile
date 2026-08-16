@@ -24,7 +24,7 @@ android {
         }
         python {
             // Embedded Python (Chaquopy 17): DSL is per product flavor.
-            // Target 3.11: hermes-agent requires >=3.11,<3.14 and the dev/
+            // Target 3.11: balls-agent requires >=3.11,<3.14 and the dev/
             // Termux environment runs 3.11 (best parity ground truth).
             version "3.11"
             buildPython "C:/Users/RickCain/AppData/Local/Programs/Python/Python311/python.exe"

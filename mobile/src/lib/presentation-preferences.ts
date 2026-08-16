@@ -5,7 +5,7 @@ export interface PresentationPreferences {
   showActivityConsoleOnChat: boolean;
 }
 
-const storageKey = "hermes-mobile.presentation-preferences.v1";
+const storageKey = "balls.presentation-preferences.v1";
 
 export const defaultPresentationPreferences: PresentationPreferences = {
   theme: "soft-haven",

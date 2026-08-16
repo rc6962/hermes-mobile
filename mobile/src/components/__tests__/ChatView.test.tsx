@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 
 import { ChatView } from "../ChatView";
-import type { HermesApi } from "../../lib/hermes-api";
+import type { BallsApi } from "../../lib/balls-api";
 import type {
   AttachmentAdapterCapabilities,
   AttachmentAdapterClient,
@@ -12,7 +12,7 @@ import type {
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 const adapterIntakeOnlyCapabilities: AttachmentAdapterCapabilities = {
-  object: "hermes.attachment_adapter.capabilities",
+  object: "balls.attachment_adapter.capabilities",
   adapter_version: "1.0",
   auth: { type: "bearer", required: true },
   features: {
@@ -47,7 +47,7 @@ function makeAdapter(
   return {
     capabilities: vi.fn(async () => adapterIntakeOnlyCapabilities),
     intakeDocument: vi.fn(async (_runId: string, file: File) => ({
-      object: "hermes.attachment",
+      object: "balls.attachment",
       attachment_id: "att_local_test",
       name: file.name,
       mime_type: file.type,
@@ -61,13 +61,13 @@ function makeAdapter(
 }
 
 function makeApi(
-  overrides: Partial<Pick<HermesApi, "startRun" | "subscribeToRun" | "stopRun" | "respondToApproval" | "getSessionMessages" | "capabilities">> = {},
+  overrides: Partial<Pick<BallsApi, "startRun" | "subscribeToRun" | "stopRun" | "respondToApproval" | "getSessionMessages" | "capabilities">> = {},
 ) {
   return {
     startRun: vi.fn(async () => ({ runId: "run-1", status: "started" })),
     subscribeToRun: vi.fn(async (_runId: string, onEvent: (event: Record<string, unknown>) => void) => {
-      onEvent({ event: "message.delta", delta: "Hello Hermes" });
-      onEvent({ event: "run.completed", output: "Hello Hermes" });
+      onEvent({ event: "message.delta", delta: "Hello Balls" });
+      onEvent({ event: "run.completed", output: "Hello Balls" });
     }),
     stopRun: vi.fn(async () => ({ run_id: "run-1", status: "stopping" })),
     respondToApproval: vi.fn(async () => ({ run_id: "run-1", status: "accepted" })),
@@ -89,7 +89,7 @@ function makeApi(
       },
     })),
     ...overrides,
-  } as unknown as Pick<HermesApi, "startRun" | "subscribeToRun" | "stopRun" | "respondToApproval" | "getSessionMessages" | "capabilities">;
+  } as unknown as Pick<BallsApi, "startRun" | "subscribeToRun" | "stopRun" | "respondToApproval" | "getSessionMessages" | "capabilities">;
 }
 
 describe("ChatView", () => {
@@ -103,9 +103,34 @@ describe("ChatView", () => {
 
     await waitFor(() => {
       expect(api.startRun).toHaveBeenCalledWith({ input: "Say hello" });
-      expect(screen.getByText("Hello Hermes")).toBeInTheDocument();
+      expect(screen.getByText("Hello Balls")).toBeInTheDocument();
     });
     expect(screen.getByText("Say hello")).toBeInTheDocument();
+  });
+
+  it("scrubs entities before egress and restores them in the reply", async () => {
+    const user = userEvent.setup();
+    const api = makeApi({
+      subscribeToRun: vi.fn(async (_runId: string, onEvent: (event: Record<string, unknown>) => void) => {
+        const sentInput = (api.startRun as ReturnType<typeof vi.fn>).mock.calls[0][0].input as string;
+        const token = sentInput.match(/[A-Z2-9]{5}/)?.[0];
+        onEvent({ event: "message.delta", delta: `Reply to ${token}` });
+        onEvent({ event: "run.completed", output: `Reply to ${token}` });
+      }),
+    });
+    render(<ChatView api={api} />);
+
+    await user.type(screen.getByRole("textbox", { name: /message/i }), "Email me at alice@example.com");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    await waitFor(() => {
+      const sent = (api.startRun as ReturnType<typeof vi.fn>).mock.calls[0][0].input as string;
+      expect(sent).not.toContain("alice@example.com");
+      expect(sent).toContain("Email me at ");
+      expect(sent.match(/[A-Z2-9]{5}$/)?.[0]).toBeDefined();
+    });
+    // The displayed reply has the original entity restored.
+    await screen.findByText("Reply to alice@example.com");
   });
 
   it("keeps the completion status visible after the stream ends", async () => {
@@ -116,11 +141,11 @@ describe("ChatView", () => {
     await user.type(screen.getByRole("textbox", { name: /message/i }), "Finish this run");
     await user.click(screen.getByRole("button", { name: /send/i }));
 
-    await screen.findByText("Hello Hermes");
+    await screen.findByText("Hello Balls");
     expect(screen.getByRole("status")).toHaveTextContent("Balls completed the run.");
   });
 
-  it("shows thinking state after Hermes accepts the run", async () => {
+  it("shows thinking state after Balls accepts the run", async () => {
     const user = userEvent.setup();
     const api = makeApi({
       subscribeToRun: vi.fn(() => new Promise<void>(() => undefined)),
@@ -1017,7 +1042,7 @@ describe("ChatView", () => {
       target: { files: [new File(["%PDF"], "report.pdf", { type: "application/pdf" })] },
     });
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      /cannot deliver them into a hermes run/i,
+      /cannot deliver them into a balls run/i,
     );
     await user.type(screen.getByRole("textbox", { name: /message/i }), "Summarize");
     expect(screen.getByRole("button", { name: /send/i })).toBeDisabled();

@@ -22,7 +22,7 @@ public class TermuxLifecyclePlugin extends Plugin {
     private static final String RUN_COMMAND_WORKDIR = "com.termux.RUN_COMMAND_WORKDIR";
     private static final String RUN_COMMAND_BACKGROUND = "com.termux.RUN_COMMAND_BACKGROUND";
     private static final String RUN_COMMAND_SESSION_ACTION = "com.termux.RUN_COMMAND_SESSION_ACTION";
-    private static final String SCRIPT_PATH = "/data/data/com.termux/files/home/.hermes/mobile-lifecycle.sh";
+    private static final String SCRIPT_PATH = "/data/data/com.termux/files/home/.balls/mobile-lifecycle.sh";
     private static final String WORKDIR = "/data/data/com.termux/files/home";
     private static final List<String> ALLOWED_ACTIONS = Arrays.asList(
             "start", "stop", "restart", "doctor", "update"

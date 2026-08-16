@@ -1,4 +1,4 @@
-import type { SessionSummary } from "./hermes-types";
+import type { SessionSummary } from "./balls-types";
 
 export interface ChatMessage {
   role: "user" | "assistant";

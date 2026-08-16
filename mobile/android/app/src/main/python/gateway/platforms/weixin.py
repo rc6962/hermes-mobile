@@ -1304,7 +1304,7 @@ class WeixinAdapter(BasePlatformAdapter):
                 "WeChat groups. iLink usually does not deliver ordinary-group events for "
                 "these accounts, so group messages may never reach Hermes regardless of this "
                 "policy. If group delivery doesn't work, the limitation is on the iLink side, "
-                "not in Hermes.",
+                "not in Balls.",
                 self.name,
                 self._group_policy,
             )

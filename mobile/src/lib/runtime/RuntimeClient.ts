@@ -11,17 +11,17 @@ import type {
   SessionListResponse,
   SessionMessagesResponse,
   SessionSummary,
-} from "../hermes-types";
+} from "../balls-types";
 
 /**
  * RuntimeClient is the runtime-neutral contract for the Balls app.
  *
- * Both the Termux runtime (existing Hermes in Termux) and the future managed
- * runtime (embedded Hermes via Chaquopy) must satisfy this interface. UI
+ * Both the Termux runtime (existing Balls in Termux) and the future managed
+ * runtime (embedded Balls via Chaquopy) must satisfy this interface. UI
  * components must depend on RuntimeClient, never on a runtime-specific
  * implementation.
  *
- * Error semantics: methods reject with HermesApiError (status + optional
+ * Error semantics: methods reject with BallsApiError (status + optional
  * code). Runtimes must not throw generic strings.
  */
 export interface RuntimeClient {

@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Balls</string>
     <string name="title_activity_main">Balls</string>
-    <string name="hermes_accessibility_service_description">Balls phone bridge status and explicitly enabled controls.</string>
+    <string name="balls_accessibility_service_description">Balls phone bridge status and explicitly enabled controls.</string>
     <string name="package_name">com.epictechs.balls</string>
     <string name="custom_url_scheme">com.epictechs.balls</string>
 </resources>

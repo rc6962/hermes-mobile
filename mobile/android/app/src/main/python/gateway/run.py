@@ -15982,7 +15982,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                     else:
                         await adapter.send(
                             chat_id,
-                            "❌ Hermes update failed (exit code {}).".format(exit_code),
+                            "❌ Balls update failed (exit code {}).".format(exit_code),
                             metadata=_non_conversational_metadata(metadata, platform=platform),
                         )
                     logger.info("Update finished (exit=%s), notified %s", exit_code, session_key)
@@ -16173,11 +16173,11 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                     if exit_code == 0:
                         msg = f"✅ Hermes update finished.\n\n```\n{output}\n```"
                     else:
-                        msg = f"❌ Hermes update failed.\n\n```\n{output}\n```"
+                        msg = f"❌ Balls update failed.\n\n```\n{output}\n```"
                 elif exit_code == 0:
                     msg = "✅ Hermes update finished successfully."
                 else:
-                    msg = "❌ Hermes update failed. Check the gateway logs or run `hermes update` manually for details."
+                    msg = "❌ Balls update failed. Check the gateway logs or run `hermes update` manually for details."
                 await adapter.send(
                     chat_id,
                     msg,

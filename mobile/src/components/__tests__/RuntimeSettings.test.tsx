@@ -39,6 +39,6 @@ describe("RuntimeSettings", () => {
     await user.click(textarea);
     await user.paste('{"providers":{}}');
     await user.click(screen.getByRole("button", { name: "Save to this device" }));
-    expect(screen.getByRole("button", { name: "Saved" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Saved/ })).toBeTruthy();
   });
 });

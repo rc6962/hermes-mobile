@@ -1,4 +1,4 @@
-import type { FetchImplementation } from "./hermes-api";
+import type { FetchImplementation } from "./balls-api";
 
 /**
  * Versioned client for the local attachment adapter (attachment-adapter/).
@@ -14,7 +14,7 @@ import type { FetchImplementation } from "./hermes-api";
  * - POST /v1/attachments/documents   -> AttachmentIntakeResult (multipart)
  *
  * The adapter currently advertises `attachment_run_delivery: false` and
- * `inline_image_input: false`. Images therefore stay on the inline Hermes run
+ * `inline_image_input: false`. Images therefore stay on the inline Balls run
  * path (never through this adapter), and documents can be ingested locally but
  * are not delivered into a run until a future adapter advertises run delivery.
  */
@@ -42,7 +42,7 @@ export interface AttachmentAdapterCapabilities {
 }
 
 export interface AttachmentIntakeResult {
-  object: "hermes.attachment";
+  object: "balls.attachment";
   attachment_id: string;
   name: string;
   mime_type: string;
@@ -238,6 +238,6 @@ export function documentSendBlockReason(
     case "unsupported-format":
       return `${fileName} is not supported by the local document service. Remove the document to send this message.`;
     case "intake-only":
-      return "The local document service can ingest documents but cannot deliver them into a Hermes run yet. Remove the document to send this message.";
+      return "The local document service can ingest documents but cannot deliver them into a Balls run yet. Remove the document to send this message.";
   }
 }

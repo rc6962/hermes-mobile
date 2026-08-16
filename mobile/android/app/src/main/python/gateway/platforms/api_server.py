@@ -2984,7 +2984,7 @@ class APIServerAdapter(BasePlatformAdapter):
             response_headers["X-Hermes-Completed"] = "false"
             response_headers["X-Hermes-Partial"] = "true" if is_partial else "false"
             if err_msg:
-                response_headers["X-Hermes-Error"] = _redact_api_error_text(err_msg, limit=200)
+                response_headers["X-Balls-Error"] = _redact_api_error_text(err_msg, limit=200)
 
         return web.json_response(response_data, headers=response_headers)
 

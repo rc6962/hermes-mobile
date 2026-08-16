@@ -33,9 +33,9 @@ export function Composer({
         onSend();
       }}
     >
-      <label htmlFor="hermes-message">Message</label>
+      <label htmlFor="balls-message">Message</label>
       <textarea
-        id="hermes-message"
+        id="balls-message"
         name="message"
         rows={2}
         value={value}
@@ -46,7 +46,7 @@ export function Composer({
             onSend();
           }
         }}
-        placeholder="Ask Hermes anything…"
+        placeholder="Ask Balls anything…"
         aria-label="Message"
         enterKeyHint="send"
         disabled={busy}

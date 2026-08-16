@@ -38,6 +38,13 @@ public class SecureCredentialsPlugin extends Plugin {
     private static final String PROVIDER_CIPHERTEXT = "provider_config_ciphertext";
     private static final String PROVIDER_IV = "provider_config_iv";
 
+    // Per-device provisioning ID (Epic Cloud account). High-entropy random,
+    // Keystore-encrypted, created once and never re-generated.
+    private static final String DEVICE_ALIAS = "BallsDeviceId";
+    private static final String DEVICE_PREFS = "secure_device_id";
+    private static final String DEVICE_CIPHERTEXT = "ciphertext";
+    private static final String DEVICE_IV = "iv";
+
     // Embedded runtime's own API key: generated on first use, independent of
     // the Termux pairing key. Own prefs + own alias so it survives
     // clearApiKey() (forget-pairing) and is never shown in the pairing UI.
@@ -130,6 +137,26 @@ public class SecureCredentialsPlugin extends Plugin {
     /** Encrypt and store the provider-config JSON. */
     public static void writeProviderConfig(Context context, String providerJson) throws Exception {
         writeSecret(context, PROVIDER_PREFS, PROVIDER_CIPHERTEXT, PROVIDER_IV, PROVIDER_ALIAS, providerJson);
+    }
+
+    /**
+     * Per-device provisioning ID: generated once (32 hex chars, SecureRandom),
+     * Keystore-encrypted, never re-generated. Used for Epic Cloud accounts.
+     */
+    public static String getOrCreateDeviceId(Context context) throws Exception {
+        String existing = readSecret(context, DEVICE_PREFS, DEVICE_CIPHERTEXT, DEVICE_IV, DEVICE_ALIAS);
+        if (existing != null && !existing.isEmpty()) {
+            return existing;
+        }
+        byte[] bytes = new byte[16];
+        new SecureRandom().nextBytes(bytes);
+        StringBuilder hex = new StringBuilder(32);
+        for (byte b : bytes) {
+            hex.append(String.format("%02x", b));
+        }
+        String deviceId = hex.toString();
+        writeSecret(context, DEVICE_PREFS, DEVICE_CIPHERTEXT, DEVICE_IV, DEVICE_ALIAS, deviceId);
+        return deviceId;
     }
 
     private static String readSecret(Context context, String prefsName, String cipherKey, String ivKey, String alias) {

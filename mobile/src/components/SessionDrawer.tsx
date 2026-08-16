@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
-import type { HermesApi } from "../lib/hermes-api";
+import type { BallsApi } from "../lib/balls-api";
 import {
   initialSessionState,
   normalizeSessionMessages,
@@ -9,7 +9,7 @@ import {
 } from "../lib/session-store";
 
 export interface SessionDrawerProps {
-  api: Pick<HermesApi, "listSessions" | "createSession" | "getSessionMessages">;
+  api: Pick<BallsApi, "listSessions" | "createSession" | "getSessionMessages">;
   selectedSessionId?: string;
   onSelect: (sessionId: string, messages: ChatMessage[]) => void;
 }

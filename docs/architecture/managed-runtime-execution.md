@@ -64,7 +64,7 @@ An earlier agent misconstrued the name "Phone Podule". Authoritative mapping:
 | `termux` | Existing Hermes in Termux (advanced mode) | ✅ shipping today |
 | `managed` | Embedded Hermes (Chaquopy) — the self-contained product | 🔄 M3/M4 (spike) |
 | `remote` (self-hosted) | Hermes gateway on the user's own server (VPS/home) or Epic's cloud (Cloud Podule) | 📝 planned — reuses RuntimeClient/HermesApi; requires transport-policy opt-in for non-loopback URLs + Keystore key slot (new alias) |
-| `local` (Local Podule) | Embedded Hermes + **on-device llama.cpp** (Gemma 4 E2B 4-bit default; Qwen3 1.7B tool alt; Qwen3 0.6B/SmolLM fallback) — fully offline | 📝 decided (`balls-local-models.md`) — NOT a new runtime kind: it is `managed` with a local llama.cpp provider in `provider_json`; requires libllama Android arm64 .so + llama-cpp-python vendored (spike later, post M4) |
+| `local` (Local Podule) | Embedded Hermes + **on-device llama.cpp** (Gemma 4 E2B 4-bit default; Qwen3 1.7B tool alt; Qwen3 0.6B/SmolLM fallback) — fully offline | ✅ spiked 2026-08-16 (`balls-local-models.md`): `managed` + vendored `llama-server` subprocess provider in `provider_json` (no ctypes, no llama-cpp-python); GGUF downloaded at onboarding |
 
 Self-hosted/cloud mode: user-entered base URL (http/https, validated) + API key stored in Android Keystore; explicit confirmation that traffic leaves the device; TLS recommended. Phone-local mode: models download at onboarding (GGUF ~0.3–1.5GB), persona preloaded in KV cache, hybrid routing (local default, cloud opt-in per `balls-serving-privacy-decision.md`).
 

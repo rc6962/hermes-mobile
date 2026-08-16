@@ -6,6 +6,8 @@ import {
   startManagedRuntime,
   stopManagedRuntime,
 } from "../lib/runtime/managed-runtime";
+import { CLOUD_ENDPOINT } from "../lib/podule-registry";
+import { provisionEpicCloud } from "../lib/provisioning";
 
 type ModelSource = "epic-cloud" | "on-device" | "custom";
 
@@ -52,23 +54,58 @@ export function RuntimeSettings() {
     setRunning(!result.stopped);
   };
 
+  const [connecting, setConnecting] = useState(false);
+  const [connected, setConnected] = useState(false);
+
+  const handleConnect = async () => {
+    setActionError(undefined);
+    setConnecting(true);
+    try {
+      const result = await provisionEpicCloud();
+      if (result.provisioned) {
+        setConnected(true);
+        setProviderSaved(true);
+      } else {
+        setActionError(result.error ?? "Epic Cloud connection failed.");
+      }
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   const handleSaveProvider = async () => {
     setActionError(undefined);
     if (!providerJson.trim()) {
-      setActionError("Paste the provider config JSON first.");
+      setActionError("Paste the Epic Cloud key (or provider JSON) first.");
       return;
     }
-    try {
-      JSON.parse(providerJson);
-    } catch {
-      setActionError("That is not valid JSON.");
-      return;
+    let config: string;
+    if (modelSource === "epic-cloud") {
+      // Build the Epic Cloud provider block from the contract: the key is
+      // the only user input; endpoint + model come from the registry.
+      config = JSON.stringify({
+        providers: {
+          "opencode-go": {
+            base_url: CLOUD_ENDPOINT,
+            api_key: providerJson.trim(),
+            model: "deepseek-v4-flash",
+          },
+        },
+      });
+    } else {
+      config = providerJson.trim();
+      try {
+        JSON.parse(config);
+      } catch {
+        setActionError("That is not valid JSON.");
+        return;
+      }
     }
-    const result = await setManagedProviderConfig(providerJson.trim());
+    const result = await setManagedProviderConfig(config);
     if (result.stored) {
       setProviderSaved(true);
     } else {
-      setActionError("Provider config could not be stored (Android app only).");
+      setActionError("Balls could not remember that (Android app only).");
     }
   };
 
@@ -133,6 +170,41 @@ export function RuntimeSettings() {
         </div>
       </div>
 
+      {modelSource === "epic-cloud" ? (
+        <div className="presentation-settings__row">
+          <div>
+            <h3>Epic Cloud</h3>
+            <p>Connect once — Balls provisions its own key automatically.</p>
+            {connected ? (
+              <p className="muted">Connected. Balls talks to Epic's models.</p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleConnect}
+                disabled={connecting}
+                className="presentation-settings__action"
+              >
+                {connecting ? "Connecting…" : "Connect to Epic Cloud"}
+              </button>
+            )}
+            <textarea
+              className="presentation-settings__textarea"
+              aria-label="Epic Cloud key (optional)"
+              value={providerJson}
+              onChange={(event) => {
+                setProviderJson(event.target.value);
+                setProviderSaved(false);
+              }}
+              placeholder="Optional: paste a key instead of auto-connecting"
+              rows={2}
+            />
+            <button type="button" onClick={handleSaveProvider} className="presentation-settings__action">
+              {providerSaved ? "Saved. Balls won't forget." : "Save key"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {modelSource === "custom" ? (
         <div className="presentation-settings__row">
           <div>
@@ -150,7 +222,7 @@ export function RuntimeSettings() {
               rows={4}
             />
             <button type="button" onClick={handleSaveProvider} className="presentation-settings__action">
-              {providerSaved ? "Saved" : "Save to this device"}
+              {providerSaved ? "Saved. Balls won't forget." : "Save to this device"}
             </button>
           </div>
         </div>

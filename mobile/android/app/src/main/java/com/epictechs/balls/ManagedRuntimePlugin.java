@@ -19,7 +19,7 @@ import java.io.File;
 @CapacitorPlugin(name = "ManagedRuntime")
 public class ManagedRuntimePlugin extends Plugin {
     private static final String TAG = "ManagedRuntime";
-    private static final String HERMES_HOME_DIR = "hermes-home";
+    private static final String HERMES_HOME_DIR = "balls-home";
 
     @PluginMethod
     public void start(PluginCall call) {
@@ -74,6 +74,19 @@ public class ManagedRuntimePlugin extends Plugin {
         } catch (Exception error) {
             Log.e(TAG, "getEmbeddedApiKey failed", error);
             call.reject("Unable to read the embedded API key");
+        }
+    }
+
+    @PluginMethod
+    public void getDeviceId(PluginCall call) {
+        try {
+            String deviceId = SecureCredentialsPlugin.getOrCreateDeviceId(getContext());
+            JSObject result = new JSObject();
+            result.put("deviceId", deviceId);
+            call.resolve(result);
+        } catch (Exception error) {
+            Log.e(TAG, "getDeviceId failed", error);
+            call.reject("Unable to read the device ID");
         }
     }
 

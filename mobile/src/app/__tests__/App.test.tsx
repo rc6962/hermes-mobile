@@ -94,7 +94,7 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: /gentle command/i }));
 
     expect(container.querySelector(".app-shell")).toHaveAttribute("data-theme", "gentle-command");
-    expect(JSON.parse(window.localStorage.getItem("hermes-mobile.presentation-preferences.v1") ?? "null")).toEqual({
+    expect(JSON.parse(window.localStorage.getItem("balls.presentation-preferences.v1") ?? "null")).toEqual({
       theme: "gentle-command",
       showActivityConsoleOnChat: false,
     });

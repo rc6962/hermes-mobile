@@ -52,7 +52,7 @@ describe("RuntimeClient (Phase 0)", () => {
     expect(started).toEqual({ runId: "run-1", status: "queued" });
   });
 
-  it("propagates typed HermesApiError with status on failure", async () => {
+  it("propagates typed BallsApiError with status on failure", async () => {
     const client = createRuntimeClient({
       kind: "termux",
       baseUrl: "http://127.0.0.1:8642",
@@ -62,7 +62,7 @@ describe("RuntimeClient (Phase 0)", () => {
     });
 
     await expect(client.health()).rejects.toMatchObject({
-      name: "HermesApiError",
+      name: "BallsApiError",
       status: 401,
       code: "unauthorized",
     });

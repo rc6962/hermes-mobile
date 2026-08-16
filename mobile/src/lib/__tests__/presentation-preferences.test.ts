@@ -6,7 +6,7 @@ import {
   savePresentationPreferences,
 } from "../presentation-preferences";
 
-const storageKey = "hermes-mobile.presentation-preferences.v1";
+const storageKey = "balls.presentation-preferences.v1";
 
 describe("presentation preferences", () => {
   afterEach(() => {

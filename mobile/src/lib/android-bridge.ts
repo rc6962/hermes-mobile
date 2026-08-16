@@ -100,7 +100,7 @@ export function normalizeAndroidBridgeStatus(value: unknown): AndroidBridgeStatu
 let plugin: NativeAndroidBridgePlugin | undefined;
 
 function getPlugin(): NativeAndroidBridgePlugin {
-  plugin ??= registerPlugin<NativeAndroidBridgePlugin>("HermesBridge");
+  plugin ??= registerPlugin<NativeAndroidBridgePlugin>("BallsBridge");
   return plugin;
 }
 

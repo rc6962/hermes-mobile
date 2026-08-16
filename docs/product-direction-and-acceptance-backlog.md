@@ -135,3 +135,14 @@ Before the next implementation cycle, capture the user's remaining requirements 
 - Termux installation and upgrade behavior;
 - future managed-runtime expectations;
 - release/distribution requirements.
+
+## Balls voice (brand copy rules, accepted 2026-08-16)
+
+All user-facing copy — especially **error messages** — uses low-key adult humor: funny, warm, never raunchy, never mean. Think the tagline "Balls: have some." Applied to errors, not to product/technical copy.
+
+Rules:
+1. Errors and empty states get a wink ("That's your daily Balls allowance, spent. Whole Balls = unlimited rounds."). Success messages stay dry ("Saved. Balls won't forget.").
+2. Never raunchy, never crude, never sexual. Double-entendre is fine; explicit is not.
+3. Never mock the user — the joke is on Balls ("Balls tripped over a cable."), not on them.
+4. Keep it short: one line, one joke. No strings of gags.
+5. Legal/safety/security notices stay plain and serious — humor only on recoverable errors and empty states.

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { HermesApi } from "../lib/hermes-api";
-import type { ApprovalChoice, CapabilitiesResponse, RunInput } from "../lib/hermes-types";
+import type { BallsApi } from "../lib/balls-api";
+import type { ApprovalChoice, CapabilitiesResponse, RunInput } from "../lib/balls-types";
 import {
   attachmentDataUrl,
   attachmentMimeType,
@@ -16,6 +16,7 @@ import {
   type AttachmentAdapterState,
 } from "../lib/attachment-adapter-client";
 import { normalizeSessionMessages, type ChatMessage } from "../lib/session-store";
+import { restoreEntities, substituteEntities } from "../lib/entity-sub";
 import {
   initialRunState,
   reduceRunEvent,
@@ -28,8 +29,8 @@ import { MessageBubble } from "./MessageBubble";
 import { RunActivity } from "./RunActivity";
 
 export interface ChatViewProps {
-  api: Pick<HermesApi, "startRun" | "subscribeToRun" | "stopRun" | "respondToApproval">
-    & Partial<Pick<HermesApi, "getSessionMessages" | "capabilities">>;
+  api: Pick<BallsApi, "startRun" | "subscribeToRun" | "stopRun" | "respondToApproval">
+    & Partial<Pick<BallsApi, "getSessionMessages" | "capabilities">>;
   sessionId?: string;
   initialMessages?: ChatMessage[];
   /** Optional local document service client; see attachment-adapter-client.ts. */
@@ -40,7 +41,7 @@ function asRunEvent(value: unknown): RunEvent {
   if (value !== null && typeof value === "object") {
     return value as RunEvent;
   }
-  return { event: "run.failed", error: "Hermes returned an invalid event" };
+  return { event: "run.failed", error: "Balls returned an invalid event" };
 }
 
 function isTerminalRunEvent(event: RunEvent): boolean {
@@ -49,7 +50,7 @@ function isTerminalRunEvent(event: RunEvent): boolean {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Hermes could not complete the run";
+  return error instanceof Error ? error.message : "Balls could not complete the run";
 }
 
 function isApprovalChoice(choice: string): choice is ApprovalChoice {
@@ -57,7 +58,7 @@ function isApprovalChoice(choice: string): choice is ApprovalChoice {
 }
 
 const STOP_ATTEMPT_TIMEOUT_MS = 5_000;
-type StopRunApi = Pick<HermesApi, "stopRun">;
+type StopRunApi = Pick<BallsApi, "stopRun">;
 
 const pendingRunCleanups = new WeakMap<object, Set<string>>();
 const inFlightRunCleanups = new WeakMap<object, Set<string>>();
@@ -175,6 +176,7 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
   const startingRef = useRef(false);
   const streamGenerationRef = useRef(0);
   const activeRunIdRef = useRef<string | undefined>(undefined);
+  const scrubMapRef = useRef<Map<string, string> | null>(null);
   const approvalRequestRef = useRef(0);
   const mountedRef = useRef(true);
   const transcriptRef = useRef<HTMLDivElement>(null);
@@ -291,7 +293,7 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
         continue;
       }
       if (!capabilities?.features?.inline_image_input || !imageTypes.includes(mimeType)) {
-        return `This Hermes runtime does not advertise ${mimeType || "this image type"} input support.`;
+        return `This Balls runtime does not advertise ${mimeType || "this image type"} input support.`;
       }
     }
     return undefined;
@@ -401,7 +403,7 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
           !adapterCapabilities?.features?.attachment_run_delivery
         ) {
           setAttachmentError(
-            "The local document service is not ready to deliver documents into a Hermes run. Remove the document to send this message.",
+            "The local document service is not ready to deliver documents into a Balls run. Remove the document to send this message.",
           );
           return;
         }
@@ -423,13 +425,29 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
     const previousMessages = [
       ...messages,
       ...(runRef.current.assistantText
-        ? [{ role: "assistant" as const, content: runRef.current.assistantText }]
+        ? [
+            {
+              role: "assistant" as const,
+              content: restoreEntities(
+                runRef.current.assistantText,
+                scrubMapRef.current ?? new Map(),
+              ),
+            },
+          ]
         : []),
     ];
     setMessages((current) => [
       ...current,
       ...(runRef.current.assistantText
-        ? [{ role: "assistant" as const, content: runRef.current.assistantText }]
+        ? [
+            {
+              role: "assistant" as const,
+              content: restoreEntities(
+                runRef.current.assistantText,
+                scrubMapRef.current ?? new Map(),
+              ),
+            },
+          ]
         : []),
       { role: "user", content: input },
     ]);
@@ -445,8 +463,26 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
     let terminalEventReceived = false;
 
     try {
+      let scrubbed: RunInput;
+      if (Array.isArray(runInput)) {
+        // Structured input: scrub each text part; image parts pass through.
+        const map = new Map<string, string>();
+        scrubbed = runInput.map((part) => {
+          if (part && typeof part === "object" && "type" in part && part.type === "text") {
+            const result = substituteEntities(String(part.text));
+            for (const [token, original] of result.map) map.set(token, original);
+            return { ...part, text: result.scrubbed };
+          }
+          return part;
+        }) as RunInput;
+        scrubMapRef.current = map;
+      } else {
+        const result = substituteEntities(runInput as string);
+        scrubbed = result.scrubbed;
+        scrubMapRef.current = result.map;
+      }
       const started = await api.startRun({
-        input: runInput,
+        input: scrubbed,
         ...(sessionId ? { sessionId } : {}),
         ...(attachmentIds && attachmentIds.length > 0 ? { attachmentIds } : {}),
       });
@@ -507,7 +543,7 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
             generation === streamGenerationRef.current &&
             activeRunIdRef.current === startedRunId
           ) {
-            const message = `Hermes accepted run ${startedRunId}, but the event stream ended before completion could be confirmed.`;
+            const message = `Balls accepted run ${startedRunId}, but the event stream ended before completion could be confirmed.`;
             setError(message);
             applyRunEvent({ event: "run.failed", error: message }, generation, startedRunId);
             clearActiveRun(startedRunId, generation);
@@ -560,7 +596,7 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
           (startedRunId === undefined || activeRunIdRef.current === startedRunId)
         ) {
           const message = startedRunId
-            ? `Hermes accepted run ${startedRunId}, but the event stream disconnected and the result could not be confirmed.`
+            ? `Balls accepted run ${startedRunId}, but the event stream disconnected and the result could not be confirmed.`
             : errorMessage(cause);
           setError(message);
           applyRunEvent({ event: "run.failed", error: message }, generation, startedRunId);
@@ -668,13 +704,13 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
   };
 
   return (
-    <section className="chat-view" aria-label="Hermes chat">
+    <section className="chat-view" aria-label="Balls chat">
       <div ref={transcriptRef} className="chat-transcript" role="log" aria-live="polite">
         {messages.length === 0 && !run.assistantText && !error ? (
           <div className="chat-empty-state">
             <span className="chat-empty-state__icon" aria-hidden="true">✦</span>
             <h2>Start a conversation</h2>
-            <p>Ask Hermes a question, request a task, or describe what you want to do.</p>
+            <p>Ask Balls a question, request a task, or describe what you want to do.</p>
           </div>
         ) : null}
         {messages.map((message, index) => (
@@ -682,17 +718,21 @@ export function ChatView({ api, sessionId, initialMessages, attachmentAdapter }:
             {message.content}
           </MessageBubble>
         ))}
-        {run.assistantText ? <MessageBubble role="assistant">{run.assistantText}</MessageBubble> : null}
+        {run.assistantText ? (
+          <MessageBubble role="assistant">
+            {restoreEntities(run.assistantText, scrubMapRef.current ?? new Map())}
+          </MessageBubble>
+        ) : null}
         {showRunStatus ? (
           <p className="run-status" role="status">
             <span className="run-status__dot" aria-hidden="true" />
-            {starting ? "Connecting to Hermes…" : runStatusLabel(run)}
+            {starting ? "Connecting to Balls…" : runStatusLabel(run)}
           </p>
         ) : null}
         <RunActivity state={run} />
         {run.status === "waiting_for_approval" && run.approval ? (
           <section className="approval-panel" aria-label="Approval required">
-            <p>Hermes is waiting for approval.</p>
+            <p>Balls is waiting for approval.</p>
             {run.approval.command ? <code>{run.approval.command}</code> : null}
             <div className="approval-panel__choices">
               {run.approval.choices.map((choice) => (

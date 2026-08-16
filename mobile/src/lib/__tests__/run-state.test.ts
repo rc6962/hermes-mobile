@@ -14,12 +14,12 @@ describe("run-state reducer", () => {
   it("accumulates message deltas and preserves the completed output", () => {
     const state = reduce([
       { event: "message.delta", delta: "Hello" },
-      { event: "message.delta", delta: " Hermes" },
-      { event: "run.completed", output: "Hello Hermes" },
+      { event: "message.delta", delta: " Balls" },
+      { event: "run.completed", output: "Hello Balls" },
     ]);
 
     expect(state.status).toBe("completed");
-    expect(state.assistantText).toBe("Hello Hermes");
+    expect(state.assistantText).toBe("Hello Balls");
   });
 
   it("tracks tool start and completion without losing the preview", () => {

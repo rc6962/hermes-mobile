@@ -17,7 +17,7 @@ interface NativeStreamEvent {
   status?: number;
 }
 
-interface HermesStreamPlugin {
+interface BallsStreamPlugin {
   start(options: {
     streamId: string;
     url: string;
@@ -30,10 +30,10 @@ interface HermesStreamPlugin {
   ): Promise<PluginListenerHandle>;
 }
 
-const HermesStream = registerPlugin<HermesStreamPlugin>("HermesStream");
+const BallsStream = registerPlugin<BallsStreamPlugin>("BallsStream");
 
 function abortError(): DOMException {
-  return new DOMException("The Hermes stream was cancelled", "AbortError");
+  return new DOMException("Balls hung up mid-sentence.", "AbortError");
 }
 
 function createStreamId(): string {
@@ -62,31 +62,31 @@ export function getNativeStreamImplementation(): NativeStreamImplementation | un
     });
 
     const handles = await Promise.all([
-      HermesStream.addListener("streamChunk", (event) => {
+      BallsStream.addListener("streamChunk", (event) => {
         if (event.streamId === streamId && typeof event.chunk === "string") {
           onChunk(event.chunk);
         }
       }),
-      HermesStream.addListener("streamComplete", (event) => {
+      BallsStream.addListener("streamComplete", (event) => {
         if (event.streamId === streamId) {
           settleResolve?.();
         }
       }),
-      HermesStream.addListener("streamError", (event) => {
+      BallsStream.addListener("streamError", (event) => {
         if (event.streamId !== streamId) return;
         const status = typeof event.status === "number" ? ` (HTTP ${event.status})` : "";
-        settleReject?.(new Error(`${event.message || "Hermes event stream failed"}${status}`));
+        settleReject?.(new Error(`${event.message || "Balls tripped over a cable."}${status}`));
       }),
     ]);
 
     const onAbort = () => {
-      void HermesStream.stop({ streamId });
+      void BallsStream.stop({ streamId });
       settleReject?.(abortError());
     };
     init.signal?.addEventListener("abort", onAbort, { once: true });
 
     try {
-      await HermesStream.start({
+      await BallsStream.start({
         streamId,
         url: String(input),
         headers: Object.fromEntries(new Headers(init.headers).entries()),

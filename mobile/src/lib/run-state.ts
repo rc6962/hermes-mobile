@@ -184,7 +184,7 @@ export function reduceRunEvent(state: RunState, event: RunEvent): RunState {
       return {
         ...state,
         status: "failed",
-        error: stringValue(event.error) ?? "Hermes run failed",
+        error: stringValue(event.error) ?? "Balls run failed",
         terminalEvent: event,
       };
     case "run.cancelled":

@@ -1,4 +1,4 @@
-import type { HermesApi } from "../lib/hermes-api";
+import type { BallsApi } from "../lib/balls-api";
 
 export interface MessageBubbleProps {
   role: "user" | "assistant";
@@ -14,4 +14,4 @@ export function MessageBubble({ role, children }: MessageBubbleProps) {
   );
 }
 
-export type ChatApi = Pick<HermesApi, "startRun" | "subscribeToRun" | "stopRun">;
+export type ChatApi = Pick<BallsApi, "startRun" | "subscribeToRun" | "stopRun">;

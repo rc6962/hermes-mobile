@@ -12,7 +12,7 @@ import {
 } from "../attachment-adapter-client";
 
 const ADAPTER_CAPABILITIES: AttachmentAdapterCapabilities = {
-  object: "hermes.attachment_adapter.capabilities",
+  object: "balls.attachment_adapter.capabilities",
   adapter_version: "1.0",
   auth: { type: "bearer", required: true },
   features: {
@@ -57,7 +57,7 @@ describe("normalizeAdapterCapabilities", () => {
 describe("normalizeIntakeResult", () => {
   it("accepts intake metadata and rejects content-bearing or malformed responses", () => {
     const result = normalizeIntakeResult({
-      object: "hermes.attachment",
+      object: "balls.attachment",
       attachment_id: "att_local_abc",
       name: "report.pdf",
       mime_type: "application/pdf",
@@ -127,7 +127,7 @@ describe("createAttachmentAdapterClient", () => {
         void init;
         return jsonResponse(
           {
-            object: "hermes.attachment",
+            object: "balls.attachment",
             attachment_id: "att_local_xyz",
             name: "report.pdf",
             mime_type: "application/pdf",
@@ -226,7 +226,7 @@ describe("documentSendBlockReason", () => {
     [{ state: "loading" }, /checking local document support/i],
     [{ state: "unavailable" }, /local document service is unavailable/i],
     [{ state: "unsupported-format" }, /not supported by the local document service/i],
-    [{ state: "intake-only" }, /cannot deliver them into a hermes run/i],
+    [{ state: "intake-only" }, /cannot deliver them into a balls run/i],
   ];
 
   it.each(cases)("explains %j without silently dropping the file", (negotiation, pattern) => {

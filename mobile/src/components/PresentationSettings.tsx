@@ -54,7 +54,7 @@ export function PresentationSettings({ preferences, onChange }: PresentationSett
 
             <section className="presentation-settings__section" aria-labelledby="appearance-settings-heading">
               <h3 id="appearance-settings-heading">Appearance</h3>
-              <p>Choose the workspace feel. This only changes how Hermes Mobile looks.</p>
+              <p>Choose the workspace feel. This only changes how Balls Mobile looks.</p>
               <div className="presentation-settings__themes" role="group" aria-label="Theme">
                 <button
                   type="button"
@@ -96,7 +96,7 @@ export function PresentationSettings({ preferences, onChange }: PresentationSett
 
             <section className="presentation-settings__section presentation-settings__coming-soon">
               <h3>More controls are next</h3>
-              <p>Model, provider, runtime, privacy, and Advanced Hermes settings will appear here in subsequent slices.</p>
+              <p>Model, provider, runtime, privacy, and Advanced Balls settings will appear here in subsequent slices.</p>
             </section>
             <section className="presentation-settings__section">
               <RuntimeSettings />

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SessionDrawer } from "../SessionDrawer";
-import type { HermesApi } from "../../lib/hermes-api";
+import type { BallsApi } from "../../lib/balls-api";
 
 function makeApi() {
   return {
@@ -20,7 +20,7 @@ function makeApi() {
       session_id: "session-1",
       data: [{ role: "user", content: "Previous question" }],
     })),
-  } as unknown as Pick<HermesApi, "listSessions" | "createSession" | "getSessionMessages">;
+  } as unknown as Pick<BallsApi, "listSessions" | "createSession" | "getSessionMessages">;
 }
 
 describe("SessionDrawer", () => {

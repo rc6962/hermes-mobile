@@ -1,6 +1,6 @@
 {
-  "appId": "com.rickcain.hermesmobile",
-  "appName": "Hermes Mobile",
+  "appId": "com.rickcain.ballsmobile",
+  "appName": "Balls Mobile",
   "webDir": "dist",
   "server": {
     "cleartext": true

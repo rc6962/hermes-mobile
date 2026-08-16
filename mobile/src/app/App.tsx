@@ -17,10 +17,10 @@ import {
   type PresentationPreferences,
 } from "../lib/presentation-preferences";
 import type { ChatMessage } from "../lib/session-store";
-import { resolveHermesApiUrl, resolveAttachmentAdapterUrl } from "../lib/transport-policy";
+import { resolveBallsApiUrl, resolveAttachmentAdapterUrl } from "../lib/transport-policy";
 
 function safeErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Balls is not reachable";
+  return error instanceof Error ? error.message : "Balls is not answering.";
 }
 
 interface AppProps {
@@ -29,7 +29,7 @@ interface AppProps {
 }
 
 export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBridge }: AppProps = {}) {
-  const apiUrl = resolveHermesApiUrl(import.meta.env.VITE_HERMES_API_URL);
+  const apiUrl = resolveBallsApiUrl(import.meta.env.VITE_BALLS_API_URL);
   const [apiKey, setApiKey] = useState<string>();
   const [credentialsReady, setCredentialsReady] = useState(false);
   const [credentialError, setCredentialError] = useState<string>();
@@ -194,9 +194,9 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
       {credentialsReady && apiKey && state.status === "offline" ? (
         <section className="connection-card connection-card--offline" role="alert">
           <h2>Balls is offline</h2>
-          <p>{state.error || "Open Settings and tap Start to launch the local engine."}</p>
+          <p>{state.error || "Open Settings and give Balls a poke (Start). to launch the local engine."}</p>
           <p className="muted">
-            The AI engine runs on this device. Your chat data stays on the phone unless a
+            The engine lives on this device. Your chat data stays on the phone unless a
             remote provider is configured.
           </p>
           <button type="button" onClick={() => void checkBackend()}>

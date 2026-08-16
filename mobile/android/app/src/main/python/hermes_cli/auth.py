@@ -5333,7 +5333,7 @@ def resolve_nous_access_token(
 
         if not state:
             raise AuthError(
-                "Hermes is not logged into Nous Portal.",
+                "Balls is not logged into Nous Portal.",
                 provider="nous",
                 relogin_required=True,
             )
@@ -5665,7 +5665,7 @@ def resolve_nous_runtime_credentials(
     ):
 
         if not state:
-            raise AuthError("Hermes is not logged into Nous Portal.",
+            raise AuthError("Balls is not logged into Nous Portal.",
                             provider="nous", relogin_required=True)
 
         persisted_state = dict(state)

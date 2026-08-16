@@ -1,10 +1,10 @@
-import { createHermesApi, type HermesApiOptions } from "../hermes-api";
+import { createBallsApi, type BallsApiOptions } from "../balls-api";
 import type { RuntimeClient } from "./RuntimeClient";
 import { startManagedRuntime } from "./managed-runtime";
 
 /**
  * ManagedRuntimeClient is the embedded-runtime implementation of
- * RuntimeClient. The embedded Hermes API server binds the same loopback
+ * RuntimeClient. The embedded Balls API server binds the same loopback
  * URL/port as Termux mode (127.0.0.1:8642), so the HTTP contract is
  * identical; the difference is lifecycle: the native service owns the
  * process instead of Termux.
@@ -13,9 +13,9 @@ import { startManagedRuntime } from "./managed-runtime";
  * before first use (runtime switcher); health() reports the server state.
  */
 export function createManagedRuntimeClient(
-  options: Omit<HermesApiOptions, "baseUrl"> & { baseUrl?: string },
+  options: Omit<BallsApiOptions, "baseUrl"> & { baseUrl?: string },
 ): RuntimeClient {
-  const api = createHermesApi({
+  const api = createBallsApi({
     baseUrl: options.baseUrl ?? "http://127.0.0.1:8642",
     apiKey: options.apiKey,
     fetchImpl: options.fetchImpl,

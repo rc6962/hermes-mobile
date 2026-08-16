@@ -15,6 +15,16 @@ export interface ManagedRuntimeStartResult {
  * Native Android only — rejects off-platform so web tests fall back to the
  * regular credential store.
  */
+/** Per-device provisioning ID (native Android only). */
+export async function getDeviceId(): Promise<string> {
+  const result = await getPlugin().getDeviceId();
+  const deviceId = result.deviceId as string | undefined;
+  if (!deviceId) {
+    throw new Error("device id unavailable");
+  }
+  return deviceId;
+}
+
 export async function getEmbeddedApiKey(): Promise<string> {
   const result = await getEmbeddedKeyPlugin().getEmbeddedApiKey();
   const key = result.apiKey as string | undefined;
@@ -24,8 +34,9 @@ export async function getEmbeddedApiKey(): Promise<string> {
   return key;
 }
 
-interface ManagedRuntimePlugin {
+export interface ManagedRuntimePlugin {
   getEmbeddedApiKey(): Promise<{ apiKey?: string }>;
+  getDeviceId(): Promise<{ deviceId?: string }>;
   start(): Promise<ManagedRuntimeStartResult>;
   stop(): Promise<{ stopped: boolean }>;
   status(): Promise<ManagedRuntimeStatus>;

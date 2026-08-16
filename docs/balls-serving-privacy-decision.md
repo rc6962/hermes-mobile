@@ -70,28 +70,56 @@ Client (app) → wire → Epic proxy → model. Rules at each layer:
 - **Hardening (encryption at rest + containment)**: `swapoff` (no swap file to leak RAM — only if the box isn't relying on swap; check first), `mlock` the model/session memory, `ulimit -c 0` (no core dumps), tmpfs only for podule chat state, LUKS-encrypted secondary volume if Linveo offers one, firewall + fail2ban + no remote root login. **Scoped claim: if the podule's box is ever seized, there is nothing to read *about Balls*** — no disk state, no logs, RAM gone on power-off. (On a shared box, the phone system's own Hermes state lives on disk by design — that's Epic's data, not Balls user data.)
 - Upstream = the local llama.cpp process only. No third-party API ever in the chat path.
 
-**If a third-party API is ever added (deferred, requires re-decision):**
-- Zero-retention/no-training provider + DPA, PII already scrubbed client-side, anonymous ephemeral upstream keys, no user identity forwarded. This path is NOT approved today.
+**Third-party route (APPROVED 2026-08-16 — opencode-go / DeepSeek V4 Flash):**
+- Fast cloud path via `balls.epictechs.net/v1/chat/completions` (model `deepseek-v4-flash`): the box proxies to opencode-go's API. **Entity substitution is MANDATORY for this route** — the phone scrubs before egress, so the third party processes meaningless tokens only. Zero-retention/no-training provider + DPA still preferred when one is found; opencode-go retention policy = open check.
+- Transport: phone → box = TLS 1.3 + pinning; box → opencode-go = HTTPS (endpoint provider must read content to generate — that's why scrubbing is the load-bearing control here).
+- Claim impact: "never a third party" now applies to the LOCAL/self-hosted podule only. The fast podule = "scrubbed + encrypted, third-party processed".
 
 ## What we can claim (copy-safe) vs can't
 
 | Claim | Status |
 |---|---|
 | "Your chats never leave your phone" (Local Podule) | ✅ TRUE — fully offline |
-| "Your chats go to our servers, not a third party" | ✅ TRUE — self-hosted inference |
+| "Your chats go to our servers, not a third party" | ⚠️ Local/self-hosted podule: ✅ TRUE. Fast podule (DeepSeek via opencode-go): scrubbed + encrypted, but third-party processed |
 | "We don't log your conversation content" | ✅ TRUE — by architecture (metrics only) |
 | "What leaves your phone is scrambled — your real names, numbers, addresses never exist outside your phone" | ✅ TRUE — entity substitution, default ON |
 | "Not even we can see your chats" | ⚠️ Only for Local Podule — Cloud Podule is processed on Epic's VPS by design |
 | "Even the server host can't read your chats (hardware-verified)" | ❌ NOT NOW — needs TEE hardware (Azure Confidential VM / NVIDIA confidential GPU, attestation-gated). Production-mature in 2026; revisit if we leave Linveo or Balls gets regulated/enterprise users |
 | "Your queries are encrypted/scrambled so no one can read them" | ❌ NOT CLAIMABLE — FHE not consumer-viable in 2026; don't put this in marketing |
 
+## App integration contract (hand to app dev, 2026-08-16)
+
+**Endpoint:** `https://balls.epictechs.net/v1` (OpenAI-compatible, TLS 1.3, cert-pinned)
+
+**Auth:** `Authorization: Bearer <APP_API_KEY>` — shared bootstrap key (per-device rotating tokens later per this doc). Key delivered via secure channel, never in APK source.
+
+**Model IDs (router behavior — server-side, automatic):**
+| Model ID sent by app | Route |
+|---|---|
+| `deepseek-v4-flash` | Fast cloud path — box proxies to opencode-go/DeepSeek V4 Flash (third-party; scrubbed) |
+| `qwen3-8b-q8` (default cloud) | Local llama.cpp on the box (never leaves Epic infra) |
+| Local Podule (on-device) | Resolved BEFORE any egress — zero network (see resolver below) |
+
+**Resolver order (app-side, from this doc):** entitled+installed Local Podule → local llama.cpp in-process; else Cloud Podule → `https://balls.epictechs.net/v1/chat/completions` (model `deepseek-v4-flash` for speed); unreachable → friendly offline error.
+
+**Non-negotiable app-side requirements:**
+1. Entity substitution (`src/lib/entity-sub.ts`) runs before ANY egress — default ON for paid tier.
+2. `stream: true` + SSE handling (server streams; `proxy_buffering off` upstream).
+3. TLS pinning to the balls.epictechs.net cert; signed requests + rotating device token per this doc.
+4. History stored on-device only (Keystore AES-GCM).
+5. No conversation content in any app telemetry.
+
+Server-side (Hermes handles): TLS termination, routing, upstream proxy, local model, no-log enforcement, metrics only.
+
 ## Dev wiring checklist
 
-- [ ] Podule Registry module (entitlement + status + resolver logic above)
-- [ ] Entity substitution module (`src/lib/entity-sub.ts`) — pre-egress substitution + post-response restore, default ON
-- [ ] On-device encrypted history store (Keystore AES-GCM)
-- [ ] TLS pinning + signed requests + rotating device token
-- [ ] Cloud client → `https://voice.epictechservices.com/v1/chat/completions` (OpenAI-compatible)
+- [x] Podule Registry module (entitlement + status + resolver logic) — `src/lib/podule-registry.ts`, tests green
+- [x] Entity substitution module (`src/lib/entity-sub.ts`) — pre-egress substitution + post-response restore, default ON, wired into the send path (incl. structured inputs), tests green
+- [ ] On-device encrypted history store (Keystore AES-GCM) — history is on-device today; AES-GCM vault is a native slice
+- [ ] TLS pinning + signed requests + rotating device token — device tokens issued via `/v1/accounts` (built on the box); pinning + HMAC signing pending
+- [x] Cloud client → `https://balls.epictechs.net/v1/chat/completions` (OpenAI-compatible) — provider config auto-built from the registry + provisioned token; server routes `deepseek-v4-flash` → opencode-go proxy, `qwen3-8b-q8` → local llama.cpp
+- [x] Self-provisioning — `POST /v1/accounts` on the box (device_id → token, rate-limited, 0600 store); app side `src/lib/provisioning.ts` + Keystore device ID
+- [x] Engine branding — `scripts/balls-ify-vendored.py` re-applies Balls strings to vendored engine user-facing surfaces after every vendor refresh
 - [ ] Local Podule bridge → llama.cpp in-process (Chaquopy ctypes/JNI spike first)
 - [ ] Play Billing integration + server-side receipt verification → unlock token
 - [ ] Quota enforcement for free tier (30 msgs/day, device-local counter + server counter)

@@ -1,4 +1,4 @@
-import type { HealthResponse } from "../lib/hermes-types";
+import type { HealthResponse } from "../lib/balls-types";
 
 export type AppConnectionStatus = "unknown" | "checking" | "online" | "offline";
 

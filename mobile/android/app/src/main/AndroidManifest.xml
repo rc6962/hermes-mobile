@@ -27,8 +27,8 @@
         </activity>
 
         <service
-            android:name=".HermesAccessibilityService"
-            android:description="@string/hermes_accessibility_service_description"
+            android:name=".BallsAccessibilityService"
+            android:description="@string/balls_accessibility_service_description"
             android:exported="true"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -37,7 +37,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.accessibilityservice"
-                android:resource="@xml/hermes_accessibility_service" />
+                android:resource="@xml/balls_accessibility_service" />
         </service>
 
         <service

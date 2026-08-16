@@ -402,10 +402,10 @@ h2 {
   border-radius: 50%;
   background: #60a5fa;
   box-shadow: 0 0 0.7rem #60a5fa;
-  animation: hermes-pulse 1.2s ease-in-out infinite;
+  animation: balls-pulse 1.2s ease-in-out infinite;
 }
 
-@keyframes hermes-pulse {
+@keyframes balls-pulse {
   0%,
   100% { opacity: 0.45; transform: scale(0.85); }
   50% { opacity: 1; transform: scale(1); }
