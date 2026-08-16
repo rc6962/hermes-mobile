@@ -10,17 +10,37 @@ export interface ManagedRuntimeStartResult {
   error?: string;
 }
 
-interface ManagedRuntimeNativePlugin {
+/**
+ * The embedded runtime's own API key (Keystore-generated on first use).
+ * Native Android only — rejects off-platform so web tests fall back to the
+ * regular credential store.
+ */
+export async function getEmbeddedApiKey(): Promise<string> {
+  const result = await getEmbeddedKeyPlugin().getEmbeddedApiKey();
+  const key = result.apiKey as string | undefined;
+  if (!key) {
+    throw new Error("Embedded runtime key is unavailable");
+  }
+  return key;
+}
+
+interface ManagedRuntimePlugin {
+  getEmbeddedApiKey(): Promise<{ apiKey?: string }>;
   start(): Promise<ManagedRuntimeStartResult>;
   stop(): Promise<{ stopped: boolean }>;
   status(): Promise<ManagedRuntimeStatus>;
   setProviderConfig(options: { providerJson: string }): Promise<{ stored: boolean }>;
 }
 
-let plugin: ManagedRuntimeNativePlugin | undefined;
+let plugin: ManagedRuntimePlugin | undefined;
 
-function getPlugin(): ManagedRuntimeNativePlugin {
-  plugin ??= registerPlugin<ManagedRuntimeNativePlugin>("ManagedRuntime");
+function getPlugin(): ManagedRuntimePlugin {
+  plugin ??= registerPlugin<ManagedRuntimePlugin>("ManagedRuntime");
+  return plugin;
+}
+
+function getEmbeddedKeyPlugin(): ManagedRuntimePlugin {
+  plugin ??= registerPlugin<ManagedRuntimePlugin>("ManagedRuntime");
   return plugin;
 }
 

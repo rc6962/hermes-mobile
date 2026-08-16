@@ -14,6 +14,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.SecureRandom;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -37,7 +38,39 @@ public class SecureCredentialsPlugin extends Plugin {
     private static final String PROVIDER_CIPHERTEXT = "provider_config_ciphertext";
     private static final String PROVIDER_IV = "provider_config_iv";
 
+    // Embedded runtime's own API key: generated on first use, independent of
+    // the Termux pairing key. Own prefs + own alias so it survives
+    // clearApiKey() (forget-pairing) and is never shown in the pairing UI.
+    private static final String EMBEDDED_ALIAS = "BallsEmbeddedKey";
+    private static final String EMBEDDED_PREFS = "embedded_key";
+    private static final String EMBEDDED_CIPHERTEXT = "embedded_key_ciphertext";
+    private static final String EMBEDDED_IV = "embedded_key_iv";
+
     private static final int GCM_TAG_BITS = 128;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    /** Embedded runtime API key: generated once and stored, or the existing value. */
+    public static String ensureEmbeddedApiKey(Context context) {
+        String existing = readSecret(context, EMBEDDED_PREFS, EMBEDDED_CIPHERTEXT, EMBEDDED_IV, EMBEDDED_ALIAS);
+        if (existing != null && !existing.isEmpty()) {
+            return existing;
+        }
+        byte[] bytes = new byte[32];
+        SECURE_RANDOM.nextBytes(bytes);
+        StringBuilder hex = new StringBuilder(64);
+        for (byte b : bytes) {
+            hex.append(String.format("%02x", b));
+        }
+        String generated = hex.toString();
+        try {
+            writeSecret(context, EMBEDDED_PREFS, EMBEDDED_CIPHERTEXT, EMBEDDED_IV, EMBEDDED_ALIAS, generated);
+        } catch (Exception error) {
+            // Never leave the embedded runtime keyed to an unpersisted value:
+            // fall back to null so callers fail closed.
+            return null;
+        }
+        return generated;
+    }
 
     @PluginMethod
     public void getApiKey(PluginCall call) {

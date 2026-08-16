@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-import type { RuntimeKind } from "../lib/runtime/create-runtime-client";
 import {
   getManagedRuntimeStatus,
   setManagedProviderConfig,
@@ -8,25 +7,18 @@ import {
   stopManagedRuntime,
 } from "../lib/runtime/managed-runtime";
 
-export interface RuntimeSettingsProps {
-  kind: RuntimeKind;
-  onKindChange: (kind: RuntimeKind) => void;
-}
+type ModelSource = "epic-cloud" | "on-device" | "custom";
 
-export function RuntimeSettings({ kind, onKindChange }: RuntimeSettingsProps) {
+export function RuntimeSettings() {
   const [running, setRunning] = useState(false);
   const [statusError, setStatusError] = useState<string | undefined>();
   const [actionError, setActionError] = useState<string | undefined>();
+  const [modelSource, setModelSource] = useState<ModelSource>("epic-cloud");
   const [providerJson, setProviderJson] = useState("");
   const [providerSaved, setProviderSaved] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    if (kind !== "managed") {
-      setRunning(false);
-      setStatusError(undefined);
-      return;
-    }
     getManagedRuntimeStatus()
       .then((status) => {
         if (!cancelled) {
@@ -42,7 +34,7 @@ export function RuntimeSettings({ kind, onKindChange }: RuntimeSettingsProps) {
     return () => {
       cancelled = true;
     };
-  }, [kind]);
+  }, []);
 
   const handleStart = async () => {
     setActionError(undefined);
@@ -82,51 +74,70 @@ export function RuntimeSettings({ kind, onKindChange }: RuntimeSettingsProps) {
 
   return (
     <section className="presentation-settings__section" aria-labelledby="runtime-settings-heading">
-      <h3 id="runtime-settings-heading">Runtime</h3>
-      <p>Which local AI engine powers this workspace.</p>
-      <div className="presentation-settings__themes" role="group" aria-label="Runtime mode">
+      <h3 id="runtime-settings-heading">Engine</h3>
+      <p>Balls runs its own AI engine — nothing else to install.</p>
+
+      <div className="presentation-settings__row">
+        <div>
+          <h3>Engine status</h3>
+          <p>
+            Status: {running ? "running" : "stopped"}
+            {statusError ? ` — ${statusError}` : ""}
+          </p>
+        </div>
         <button
           type="button"
-          aria-pressed={kind === "termux"}
-          className={kind === "termux" ? "is-selected" : undefined}
-          onClick={() => onKindChange("termux")}
+          onClick={running ? handleStop : handleStart}
+          className="presentation-settings__action"
         >
-          Termux (advanced)
-        </button>
-        <button
-          type="button"
-          aria-pressed={kind === "managed"}
-          className={kind === "managed" ? "is-selected" : undefined}
-          onClick={() => onKindChange("managed")}
-        >
-          Embedded (Balls)
+          {running ? "Stop" : "Start"}
         </button>
       </div>
 
-      {kind === "managed" ? (
-        <div className="presentation-settings__row">
-          <div>
-            <h3>Embedded runtime</h3>
-            <p>
-              Status: {running ? "running" : "stopped"}
-              {statusError ? ` — ${statusError}` : ""}
-            </p>
+      <div className="presentation-settings__row">
+        <div>
+          <h3>Model source</h3>
+          <div className="presentation-settings__themes" role="group" aria-label="Model source">
+            <button
+              type="button"
+              aria-pressed={modelSource === "epic-cloud"}
+              className={modelSource === "epic-cloud" ? "is-selected" : undefined}
+              onClick={() => setModelSource("epic-cloud")}
+            >
+              Epic Cloud
+            </button>
+            <button
+              type="button"
+              aria-pressed={modelSource === "on-device"}
+              className={modelSource === "on-device" ? "is-selected" : undefined}
+              onClick={() => setModelSource("on-device")}
+            >
+              On this device
+            </button>
+            <button
+              type="button"
+              aria-pressed={modelSource === "custom"}
+              className={modelSource === "custom" ? "is-selected" : undefined}
+              onClick={() => setModelSource("custom")}
+            >
+              Custom (developer)
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={running ? handleStop : handleStart}
-            className="presentation-settings__action"
-          >
-            {running ? "Stop" : "Start"}
-          </button>
+          <p className="muted">
+            {modelSource === "epic-cloud"
+              ? "Epic's hosted models — the default for everyone."
+              : modelSource === "on-device"
+                ? "Private offline mode — arrives with the on-device model update."
+                : ""}
+          </p>
         </div>
-      ) : null}
+      </div>
 
-      {kind === "managed" ? (
+      {modelSource === "custom" ? (
         <div className="presentation-settings__row">
           <div>
-            <h3>Provider config</h3>
-            <p>Paste the Hermes providers block (JSON) so the embedded engine can reach a model provider.</p>
+            <h3>Custom provider (developer)</h3>
+            <p>Paste a provider config (JSON). For internal testing only.</p>
             <textarea
               className="presentation-settings__textarea"
               aria-label="Provider config JSON"

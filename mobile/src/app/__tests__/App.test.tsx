@@ -5,14 +5,6 @@ import userEvent from "@testing-library/user-event";
 import type { AndroidBridgeAdapter, AndroidBridgeStatus } from "../../lib/android-bridge";
 import type { ApiKeyStore } from "../../lib/credentials";
 
-const { runTermuxLifecycleMock } = vi.hoisted(() => ({
-  runTermuxLifecycleMock: vi.fn(),
-}));
-
-vi.mock("../../lib/lifecycle-actions", () => ({
-  runTermuxLifecycle: runTermuxLifecycleMock,
-}));
-
 import { App } from "../App";
 
 function createStore(apiKey?: string): ApiKeyStore {
@@ -61,28 +53,6 @@ describe("App", () => {
     expect(await screen.findByRole("heading", { name: /pair with balls/i })).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });
-  it("forgets a stored key and returns to pairing", async () => {
-    const user = userEvent.setup();
-    const store = createStore("test-key");
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: RequestInfo | URL) => {
-        const url = String(input);
-        const body = url.endsWith("/api/sessions")
-          ? { object: "list", data: [], limit: 50, offset: 0, has_more: false }
-          : { status: "ok" };
-        return new Response(JSON.stringify(body), { status: 200 });
-      }),
-    );
-
-    render(<App credentialStore={store} />);
-
-    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/online/i));
-    await user.click(screen.getByRole("button", { name: /forget pairing/i }));
-
-    expect(store.clear).toHaveBeenCalledOnce();
-    expect(await screen.findByRole("heading", { name: /pair with balls/i })).toBeInTheDocument();
-  });
   it("shows the backend online state and chat composer after health succeeds", async () => {
     vi.stubGlobal(
       "fetch",
@@ -128,38 +98,6 @@ describe("App", () => {
       theme: "gentle-command",
       showActivityConsoleOnChat: false,
     });
-  });
-
-  it("restarts Termux and polls until the backend comes back online", async () => {
-    const user = userEvent.setup();
-    let healthCalls = 0;
-    runTermuxLifecycleMock.mockResolvedValue({ accepted: true, action: "restart" });
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: RequestInfo | URL) => {
-        const url = String(input);
-        if (url.endsWith("/health")) {
-          healthCalls += 1;
-          if (healthCalls < 3) throw new Error("Hermes is offline");
-          return new Response(JSON.stringify({ status: "ok" }), { status: 200 });
-        }
-        if (url.endsWith("/api/sessions")) {
-          return new Response(JSON.stringify({ object: "list", data: [], limit: 50, offset: 0, has_more: false }), {
-            status: 200,
-          });
-        }
-        throw new Error(`Unexpected request: ${url}`);
-      }),
-    );
-
-    render(<App credentialStore={createStore("test-key")} />);
-
-    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/offline/i));
-    await user.click(screen.getByRole("button", { name: /retry connection/i }));
-
-    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/online/i), { timeout: 4000 });
-    expect(runTermuxLifecycleMock).toHaveBeenCalledWith("restart");
-    expect(healthCalls).toBeGreaterThanOrEqual(3);
   });
 
   it("shows bridge setup state and delegates the accessibility settings action", async () => {

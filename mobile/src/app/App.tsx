@@ -3,16 +3,14 @@ import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { appStateReducer, initialAppState } from "./app-state";
 import { BridgeStatusCard } from "../components/BridgeStatusCard";
 import { ChatView } from "../components/ChatView";
-import { LifecycleControls } from "../components/LifecycleControls";
 import { PairingView } from "../components/PairingView";
 import { PresentationSettings } from "../components/PresentationSettings";
 import { SessionDrawer } from "../components/SessionDrawer";
 import { apiKeyStore, type ApiKeyStore } from "../lib/credentials";
-import { createRuntimeClient, type RuntimeKind } from "../lib/runtime/create-runtime-client";
-import { loadRuntimeKind, saveRuntimeKind } from "../lib/runtime/runtime-preferences";
+import { createRuntimeClient } from "../lib/runtime/create-runtime-client";
+import { getEmbeddedApiKey } from "../lib/runtime/managed-runtime";
 import { createAttachmentAdapterClient } from "../lib/attachment-adapter-client";
 import { androidBridge, type AndroidBridgeAdapter, type AndroidBridgeStatus } from "../lib/android-bridge";
-import { runTermuxLifecycle, type LifecycleAction } from "../lib/lifecycle-actions";
 import {
   loadPresentationPreferences,
   savePresentationPreferences,
@@ -23,13 +21,6 @@ import { resolveHermesApiUrl, resolveAttachmentAdapterUrl } from "../lib/transpo
 
 function safeErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Balls is not reachable";
-}
-
-const RECONNECT_ATTEMPTS = 10;
-const RECONNECT_DELAY_MS = 1000;
-
-function waitForReconnectAttempt(): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, RECONNECT_DELAY_MS));
 }
 
 interface AppProps {
@@ -44,11 +35,15 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   const [credentialError, setCredentialError] = useState<string>();
   useEffect(() => {
     let active = true;
-    void credentialStore
-      .load()
-      .then((storedKey) => {
+    // The embedded runtime owns its key (generated in Keystore on first
+    // use). Web dev falls back to the regular credential store.
+    const loadKey: Promise<string | undefined> = getEmbeddedApiKey().catch(() =>
+      credentialStore.load().then((stored) => stored ?? undefined),
+    );
+    void loadKey
+      .then((resolvedKey) => {
         if (!active) return;
-        setApiKey(storedKey);
+        setApiKey(resolvedKey);
         setCredentialsReady(true);
       })
       .catch((error: unknown) => {
@@ -62,15 +57,10 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   }, [credentialStore]);
 
   const [presentationPreferences, setPresentationPreferences] = useState(loadPresentationPreferences);
-  const [runtimeKind, setRuntimeKind] = useState<RuntimeKind>(loadRuntimeKind);
-
-  useEffect(() => {
-    saveRuntimeKind(runtimeKind);
-  }, [runtimeKind]);
 
   const api = useMemo(
-    () => createRuntimeClient({ kind: runtimeKind, baseUrl: apiUrl, apiKey: apiKey || "" }),
-    [apiKey, apiUrl, runtimeKind],
+    () => createRuntimeClient({ kind: "managed", baseUrl: apiUrl, apiKey: apiKey || "" }),
+    [apiKey, apiUrl],
   );
   const attachmentAdapter = useMemo(
     () =>
@@ -108,25 +98,6 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
     }
   }, [api]);
 
-  const reconnectBackend = useCallback(async (): Promise<boolean> => {
-    for (let attempt = 0; attempt < RECONNECT_ATTEMPTS; attempt += 1) {
-      if (await checkBackend()) return true;
-      if (attempt < RECONNECT_ATTEMPTS - 1) await waitForReconnectAttempt();
-    }
-    return false;
-  }, [checkBackend]);
-
-  const runLifecycleAction = useCallback(
-    async (action: LifecycleAction) => {
-      const result = await runTermuxLifecycle(action);
-      if (action === "start" || action === "restart") {
-        const online = await reconnectBackend();
-        if (!online) throw new Error("Balls did not come back online after the restart request");
-      }
-      return result;
-    },
-    [reconnectBackend],
-  );
 
   const refreshBridgeStatus = useCallback(async () => {
     setBridgeLoading(true);
@@ -160,15 +131,6 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
     }
   }, [apiKey, checkBackend, credentialsReady, refreshBridgeStatus]);
 
-  const forgetPairing = useCallback(async () => {
-    await credentialStore.clear();
-    setApiKey(undefined);
-    setCredentialError(undefined);
-    setSessionId(undefined);
-    setSessionMessages([]);
-    setBridgeStatus(undefined);
-    setBridgeError(undefined);
-  }, [credentialStore]);
 
   const statusLabel =
     state.status === "checking"
@@ -183,7 +145,7 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
     <main className="app-shell" data-theme={presentationPreferences.theme}>
       <header className="app-header">
         <div>
-          <p className="eyebrow">TERMUX-BACKED ASSISTANT</p>
+          <p className="eyebrow">LOCAL AI ENGINE</p>
           <h1>Balls</h1>
         </div>
         <div className="app-header__actions">
@@ -191,17 +153,7 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
             <span className="connection-status__dot" aria-hidden="true" />
             {statusLabel}
           </p>
-          <PresentationSettings
-            preferences={presentationPreferences}
-            onChange={updatePresentationPreferences}
-            runtimeKind={runtimeKind}
-            onRuntimeKindChange={setRuntimeKind}
-          />
-          {credentialsReady && apiKey ? (
-            <button type="button" className="app-header__forget" onClick={() => void forgetPairing()}>
-              Forget pairing
-            </button>
-          ) : null}
+          <PresentationSettings preferences={presentationPreferences} onChange={updatePresentationPreferences} />
         </div>
       </header>
 
@@ -233,13 +185,12 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
       {credentialsReady && apiKey && state.status === "offline" ? (
         <section className="connection-card connection-card--offline" role="alert">
           <h2>Balls is offline</h2>
-          <p>{state.error || "Start the local AI engine in Termux, then retry."}</p>
+          <p>{state.error || "Open Settings and tap Start to launch the local engine."}</p>
           <p className="muted">
-            The app only talks to the local Termux backend. No chat data is sent to a remote
-            server by this frontend.
+            The AI engine runs on this device. Your chat data stays on the phone unless a
+            remote provider is configured.
           </p>
-          <LifecycleControls onAction={runLifecycleAction} />
-          <button type="button" onClick={() => void runLifecycleAction("restart").catch(() => undefined)}>
+          <button type="button" onClick={() => void checkBackend()}>
             Retry connection
           </button>
         </section>

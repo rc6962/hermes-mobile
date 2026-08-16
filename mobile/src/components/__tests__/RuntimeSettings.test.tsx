@@ -12,38 +12,33 @@ vi.mock("../../lib/runtime/managed-runtime", () => ({
 }));
 
 describe("RuntimeSettings", () => {
-  it("renders both runtime modes and reflects the current kind", () => {
-    render(<RuntimeSettings kind="termux" onKindChange={() => undefined} />);
-    expect(screen.getByRole("button", { name: "Termux (advanced)" })).toHaveProperty(
-      "ariaPressed",
-      "true",
-    );
-    expect(screen.getByRole("button", { name: "Embedded (Balls)" })).toBeTruthy();
+  it("shows engine status with Start when stopped", () => {
+    render(<RuntimeSettings />);
+    expect(screen.getByText(/Status: stopped/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start" })).toBeTruthy();
   });
 
-  it("switching to embedded reports the new kind", async () => {
-    const user = userEvent.setup();
-    const onKindChange = vi.fn();
-    render(<RuntimeSettings kind="termux" onKindChange={onKindChange} />);
-    await user.click(screen.getByRole("button", { name: "Embedded (Balls)" }));
-    expect(onKindChange).toHaveBeenCalledWith("managed");
+  it("defaults to Epic Cloud as the model source", () => {
+    render(<RuntimeSettings />);
+    expect(screen.getByRole("button", { name: "Epic Cloud" }).getAttribute("aria-pressed")).toBe("true");
   });
 
-  it("shows the provider config editor and saves valid JSON in embedded mode", async () => {
+  it("hides the custom provider box until Custom is selected", async () => {
     const user = userEvent.setup();
-    render(<RuntimeSettings kind="managed" onKindChange={() => undefined} />);
+    render(<RuntimeSettings />);
+    expect(screen.queryByLabelText("Provider config JSON")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Custom (developer)" }));
+    expect(screen.getByLabelText("Provider config JSON")).toBeTruthy();
+  });
+
+  it("saves valid provider JSON in the custom view", async () => {
+    const user = userEvent.setup();
+    render(<RuntimeSettings />);
+    await user.click(screen.getByRole("button", { name: "Custom (developer)" }));
     const textarea = screen.getByLabelText("Provider config JSON");
     await user.click(textarea);
     await user.paste('{"providers":{}}');
     await user.click(screen.getByRole("button", { name: "Save to this device" }));
     expect(screen.getByRole("button", { name: "Saved" })).toBeTruthy();
-  });
-
-  it("rejects invalid provider JSON", async () => {
-    const user = userEvent.setup();
-    render(<RuntimeSettings kind="managed" onKindChange={() => undefined} />);
-    await user.type(screen.getByLabelText("Provider config JSON"), "not json");
-    await user.click(screen.getByRole("button", { name: "Save to this device" }));
-    expect(screen.getByText("That is not valid JSON.")).toBeTruthy();
   });
 });

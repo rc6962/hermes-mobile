@@ -31,9 +31,13 @@ public class ManagedRuntimePlugin extends Plugin {
                 return;
             }
 
-            String apiKey = SecureCredentialsPlugin.readApiKey(getContext());
-            if (apiKey == null || apiKey.isEmpty()) {
-                call.reject("No API key stored; call SecureCredentials.setApiKey first");
+            // The embedded runtime is self-contained: it uses its own
+            // Keystore-generated key (created on first use), never the
+            // Termux pairing key — so everyday users never see a pairing
+            // wall in embedded mode.
+            String apiKey = SecureCredentialsPlugin.ensureEmbeddedApiKey(getContext());
+            if (apiKey == null) {
+                call.reject("Unable to create the embedded runtime key");
                 return;
             }
 

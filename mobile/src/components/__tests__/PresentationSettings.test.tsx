@@ -12,8 +12,6 @@ describe("PresentationSettings", () => {
       <PresentationSettings
         preferences={{ theme: "soft-haven", showActivityConsoleOnChat: false }}
         onChange={onChange}
-        runtimeKind="termux"
-        onRuntimeKindChange={vi.fn()}
       />,
     );
 
@@ -35,8 +33,6 @@ describe("PresentationSettings", () => {
       <PresentationSettings
         preferences={{ theme: "gentle-command", showActivityConsoleOnChat: false }}
         onChange={onChange}
-        runtimeKind="termux"
-        onRuntimeKindChange={vi.fn()}
       />,
     );
 
