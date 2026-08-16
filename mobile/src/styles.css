@@ -109,7 +109,7 @@ h2 {
 }
 
 .connection-status--online {
-  color: #86efac;
+  color: #10b981;
 }
 
 .connection-status--offline {
@@ -453,7 +453,12 @@ h2 {
   padding: 0.8rem;
   background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(18px);
-  box-shadow: 0 1rem 3rem rgba(2, 6, 23, 0.3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  transition: box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.composer:focus-within {
+  border-color: rgba(125, 211, 252, 0.45);
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.4), 0 6px 18px rgba(0, 0, 0, 0.28);
 }
 
 .composer label {
@@ -893,4 +898,24 @@ h2 {
   color: #e2e8f0;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* Brand CTA — the consensus gradient (Balls Studio direction) */
+.connection-card__cta {
+  margin-top: 0.35rem;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1.4rem;
+  color: #ffffff;
+  font-weight: 700;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.45);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 180ms ease;
+}
+.connection-card__cta:hover {
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.6);
+}
+.connection-card__cta:active {
+  transform: scale(0.97);
 }

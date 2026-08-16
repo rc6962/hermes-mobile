@@ -252,12 +252,12 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
       {credentialsReady && apiKey && state.status === "offline" ? (
         <section className="connection-card connection-card--offline" role="alert">
           <h2>Balls is offline</h2>
-          <p>{state.error || "Open Settings and give Balls a poke (Start). to launch the local engine."}</p>
+          <p>{state.error || "Balls couldn't start. Try the connection again."}</p>
           <p className="muted">
-            The engine lives on this device. Your chat data stays on the phone unless a
-            remote provider is configured.
+            The engine lives on this device — your chats stay private unless you
+            connect a cloud provider.
           </p>
-          <button type="button" onClick={() => void checkBackend()}>
+          <button type="button" className="connection-card__cta" onClick={() => void checkBackend()}>
             Retry connection
           </button>
         </section>
