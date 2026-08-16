@@ -86,20 +86,25 @@ public final class BallsAccessibilityServer {
             boolean fresh = path.contains("fresh=1");
             String body;
             int status = 200;
-            if (path.startsWith("/health")) {
-                JSONObject out = new JSONObject();
-                out.put("ok", true);
-                out.put("connected", BallsAccessibilityService.isConnected());
-                body = out.toString();
-            } else if (path.startsWith("/v1/accessibility/snapshot")) {
-                JSONObject snap = BallsAccessibilityService.snapshot(fresh);
-                body = snap.toString();
-                if (snap.optString("error", null) != null) {
-                    status = 503;
+            try {
+                if (path.startsWith("/health")) {
+                    JSONObject out = new JSONObject();
+                    out.put("ok", true);
+                    out.put("connected", BallsAccessibilityService.isConnected());
+                    body = out.toString();
+                } else if (path.startsWith("/v1/accessibility/snapshot")) {
+                    JSONObject snap = BallsAccessibilityService.snapshot(fresh);
+                    body = snap.toString();
+                    if (snap.optString("error", null) != null) {
+                        status = 503;
+                    }
+                } else {
+                    status = 404;
+                    body = "{\"error\":\"not found\"}";
                 }
-            } else {
-                status = 404;
-                body = "{\"error\":\"not found\"}";
+            } catch (Exception e) {
+                status = 500;
+                body = "{\"error\":\"server error\"}";
             }
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
             OutputStream out = client.getOutputStream();
