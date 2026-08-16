@@ -1,4 +1,7 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
 
 // The workspace filesystem can leave a prior generated build directory
 // unreadable after Capacitor cleanup. Keep reproducible app outputs in a fresh,
@@ -15,6 +18,16 @@ android {
         versionCode 10
         versionName "0.2.10"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            // Spike M1: arm64-only (S24). Add x86_64 for emulator coverage later.
+            abiFilters "arm64-v8a"
+        }
+        python {
+            // Embedded Python (Chaquopy 17): DSL is per product flavor.
+            // M1: interpreter only, no packages yet. M2 adds the pinned
+            // hermes-agent[web] requirement set.
+            buildPython "C:/Users/RickCain/AppData/Local/Python/pythoncore-3.11-64/python.exe"
+        }
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
