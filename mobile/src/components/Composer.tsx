@@ -1,4 +1,30 @@
+import { useState } from "react";
+
 import type { PendingAttachment } from "../lib/attachments";
+
+interface SpeechRecognitionAlternativeLike {
+  transcript: string;
+}
+interface SpeechRecognitionResultLike {
+  readonly length: number;
+  [index: number]: SpeechRecognitionAlternativeLike[];
+}
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: SpeechRecognitionResultLike;
+}
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start(): void;
+}
+interface SpeechRecognitionCtorLike {
+  new (): SpeechRecognitionLike;
+}
 
 interface ComposerProps {
   value: string;
@@ -25,6 +51,40 @@ export function Composer({
   attachmentError,
   canSend = true,
 }: ComposerProps) {
+  const [listening, setListening] = useState(false);
+
+  const toggleSpeech = () => {
+    const SR =
+      (window as unknown as { SpeechRecognition?: SpeechRecognitionCtorLike })
+        .SpeechRecognition ??
+      (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionCtorLike })
+        .webkitSpeechRecognition;
+    if (!SR) {
+      return;
+    }
+    if (listening) {
+      setListening(false);
+      return;
+    }
+    const recognition = new SR();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
+      let transcript = "";
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        transcript += event.results[i][0].transcript;
+      }
+      if (transcript) {
+        onChange(`${value}${value && !value.endsWith(" ") ? " " : ""}${transcript}`);
+      }
+    };
+    recognition.onend = () => setListening(false);
+    recognition.onerror = () => setListening(false);
+    recognition.start();
+    setListening(true);
+  };
+
   return (
     <form
       className="composer"
@@ -107,6 +167,16 @@ export function Composer({
               }}
             />
           </label>
+          <button
+            type="button"
+            className={`composer__mic${listening ? " is-listening" : ""}`}
+            aria-label={listening ? "Stop voice input" : "Voice input"}
+            aria-pressed={listening}
+            disabled={busy}
+            onClick={toggleSpeech}
+          >
+            {listening ? "◉" : "🎙"}
+          </button>
           <button type="submit" disabled={busy || value.trim().length === 0 || !canSend}>
             Send
           </button>

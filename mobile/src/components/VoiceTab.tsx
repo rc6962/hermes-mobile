@@ -101,7 +101,7 @@ export function VoiceTab() {
         <p>
           {stage === "phone"
             ? "Balls calls you — or answers when people call your Balls number. Verify the number you want tied to this phone."
-            : "Enter the 6-digit code from the text."}
+            : "Enter the code from the text — however many digits it shows."}
         </p>
         {error ? <div className="voice-tab__error">{error}</div> : null}
         {stage === "phone" ? (
