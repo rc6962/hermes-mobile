@@ -9,6 +9,7 @@ import { PresentationSettings } from "../components/PresentationSettings";
 import { SessionDrawer } from "../components/SessionDrawer";
 import { apiKeyStore, type ApiKeyStore } from "../lib/credentials";
 import { createRuntimeClient } from "../lib/runtime/create-runtime-client";
+import { createAttachmentAdapterClient } from "../lib/attachment-adapter-client";
 import { androidBridge, type AndroidBridgeAdapter, type AndroidBridgeStatus } from "../lib/android-bridge";
 import { runTermuxLifecycle, type LifecycleAction } from "../lib/lifecycle-actions";
 import {
@@ -17,7 +18,7 @@ import {
   type PresentationPreferences,
 } from "../lib/presentation-preferences";
 import type { ChatMessage } from "../lib/session-store";
-import { resolveHermesApiUrl } from "../lib/transport-policy";
+import { resolveHermesApiUrl, resolveAttachmentAdapterUrl } from "../lib/transport-policy";
 
 function safeErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Balls is not reachable";
@@ -62,6 +63,14 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   const api = useMemo(
     () => createRuntimeClient({ kind: "termux", baseUrl: apiUrl, apiKey: apiKey || "" }),
     [apiKey, apiUrl],
+  );
+  const attachmentAdapter = useMemo(
+    () =>
+      createAttachmentAdapterClient({
+        baseUrl: resolveAttachmentAdapterUrl(import.meta.env.VITE_ATTACHMENT_ADAPTER_URL),
+        apiKey: apiKey || "",
+      }),
+    [apiKey],
   );
   const [state, dispatch] = useReducer(appStateReducer, undefined, initialAppState);
   const [sessionId, setSessionId] = useState<string>();
@@ -247,7 +256,12 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
               setSessionMessages(messages);
             }}
           />
-          <ChatView api={api} sessionId={sessionId} initialMessages={sessionMessages} />
+          <ChatView
+            api={api}
+            sessionId={sessionId}
+            initialMessages={sessionMessages}
+            attachmentAdapter={attachmentAdapter}
+          />
         </div>
       ) : null}
     </main>
