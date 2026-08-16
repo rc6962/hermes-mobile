@@ -10,7 +10,7 @@ describe("PresentationSettings", () => {
     const onChange = vi.fn();
     render(
       <PresentationSettings
-        preferences={{ theme: "soft-haven", showActivityConsoleOnChat: false }}
+        preferences={{ theme: "gentle-command", showActivityConsoleOnChat: false }}
         onChange={onChange}
       />,
     );

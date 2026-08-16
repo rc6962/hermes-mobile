@@ -8,7 +8,8 @@ export interface PresentationPreferences {
 const storageKey = "balls.presentation-preferences.v1";
 
 export const defaultPresentationPreferences: PresentationPreferences = {
-  theme: "soft-haven",
+  // Brand default is the dark theme — the splash/icon are dark-branded.
+  theme: "gentle-command",
   showActivityConsoleOnChat: false,
 };
 

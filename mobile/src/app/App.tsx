@@ -205,7 +205,7 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
     <main className="app-shell" data-theme={presentationPreferences.theme}>
       <header className="app-header">
         <div>
-          <p className="eyebrow">LOCAL AI ENGINE</p>
+          <p className="eyebrow">AN EPIC TECHNOLOGIES PRODUCT</p>
           <h1>Balls</h1>
         </div>
         <div className="app-header__actions">

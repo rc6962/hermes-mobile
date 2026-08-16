@@ -519,6 +519,36 @@ h2 {
   gap: 0.5rem;
 }
 
+.composer__mic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.composer__mic:hover {
+  background: #3b82f6;
+}
+.composer__mic:active {
+  transform: scale(0.94);
+}
+.composer__mic.is-listening {
+  background: #f43f5e;
+  box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.25);
+  animation: balls-pulse 1.4s ease-in-out infinite;
+}
+@keyframes balls-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.25); }
+  50% { box-shadow: 0 0 0 8px rgba(244, 63, 94, 0.12); }
+}
+
 .composer__actions button[type="button"] {
   background: #7f1d1d;
 }

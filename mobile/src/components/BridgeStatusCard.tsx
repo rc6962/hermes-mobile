@@ -51,7 +51,7 @@ export function BridgeStatusCard({
     <section className="bridge-status-card" aria-label="Phone bridge status">
       <div className="bridge-status-card__header">
         <div>
-          <p className="eyebrow">ANDROID CAPABILITY BRIDGE</p>
+          <p className="eyebrow">PHONE CONTROL</p>
           <h2>{headingFor(status, loading)}</h2>
         </div>
         <span className="bridge-status-card__state">{status?.bridge ?? "checking"}</span>
