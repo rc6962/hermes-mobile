@@ -9,7 +9,7 @@
 
 ## Decision
 
-1. **Default serving = Cloud Podule** (`balls-cloud-core`), hosted on Epic's own VPS (Linveo V2, Texas, `voice.epictechservices.com`, 4c/8GB). The app's default answer path is Epic infrastructure, never a third-party API.
+1. **Default serving = Cloud Podule** (`balls-cloud-core`), hosted on a **dedicated inference box** (Linveo TX, 16GB/6c — inference ONLY). **Hermes agent runs on the phone itself** (embedded/Termux); V2 (`voice.epictechservices.com`) hosts the phone dashboard/console. The box is a dumb model endpoint: no agent runtime, no sessions, no dashboard, no persistent state. The app's default answer path is Epic infrastructure, never a third-party API.
 2. **Both Cloud Podules AND the Local Podule are paid.** Free tier "Balls Deep" = core chat via the default cloud podule (rate-limited). Paid "Whole Balls" = all podules (cloud premium + phone).
 3. **Local Podule** = on-device model (Gemma 4 E2B, 4-bit, llama.cpp in-process — see `balls-local-models.md` consult) — the offline/privacy tier.
 4. **Privacy model = "we physically can't see your chats" via architecture, not scrambling.** No prompt encryption (FHE is research-stage, not consumer-viable in 2026 — Cachemir arXiv 2602.11470 is the first practical FHE KV-cache protocol and still not shippable). The claim is backed by: Epic-hosted inference, ephemeral-by-design server, client-side PII scrubbing, and a no-content-logging policy.
@@ -23,17 +23,17 @@ Resolver order when a message is sent:
 ```
 1. If entitlement has Local Podule AND local podule model is installed:
    → route to local llama.cpp (in-process, Chaquopy bridge)      [offline, zero egress]
-2. Else (default): Cloud Podule → Epic proxy
-   → https://voice.epictechservices.com/v1/chat/completions      [TLS 1.3, cert-pinned]
+2. Else (default): Cloud Podule → Epic inference box
+   → https://<inference-box>/v1/chat/completions            [TLS 1.3, cert-pinned]
 3. If cloud unreachable AND local podule not installed:
    → friendly error: "Balls is out of range. Install the Local Podule (Whole Balls)
      to talk offline."
 ```
 
 - Default = Cloud Podule. Local Podule = user-visible choice ("Talk with the Local Podule — 100% offline") on Whole Balls.
-- Model on V2: `Qwen3-8B Q4_K_M` (or Qwen3-4B if 8B too slow on 4c/8GB) via llama.cpp server, `--no-webui`, single model, small context. Verify tok/s on device before locking final.
-- **⚠️ V2 coexists with the phone system + phone dashboard (Hermes console).** Deployment decision: **preferred = separate Balls inference box** (clean isolation, 8B fits, zero risk to phone system); **accepted fallback = share V2 with Qwen3-4B Q4 only** (~2.5-3.5GB — an 8B Q4 risks OOM-killing the phone system on 8GB). All no-log measures below are SCOPED to the podule path — never apply them globally (phone system/dashboard need persistent Hermes state + logs).
-- Proxy = lightweight OpenAI-compatible shim (llama.cpp server already exposes `/v1`). No auth passthrough to any third party — the ONLY upstream is the local model on the VPS.
+- **Box role: inference ONLY.** Hermes agent + tools + persona + entity substitution run ON THE PHONE; the phone's Hermes dials this box as a plain OpenAI-compatible model endpoint. V2 keeps hosting the phone dashboard/console (its state stays on V2/phone — untouched). The box holds: model weights + tmpfs request buffer + metrics only. Nothing persistent, nothing to share, no contention with any dashboard. All no-log measures below apply to the box globally — there is nothing else on it.
+- Model: `Qwen3-8B Q8_0` (~8.5GB, near-lossless — Q4 rejected, user's quality bar) for cloud-core; `Qwen3-14B Q6_K` (~10.5GB) for cloud-premium. Speculative decoding optional (0.6B draft). Verify tok/s before locking.
+- Proxy = llama.cpp server's native OpenAI-compatible `/v1`. No auth passthrough to any third party — the ONLY upstream is the local model.
 
 ## Podule Registry (app module)
 

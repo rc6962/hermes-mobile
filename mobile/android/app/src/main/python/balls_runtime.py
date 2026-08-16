@@ -91,6 +91,10 @@ def start_runtime(
         return {"ok": False, "error": f"import failed: {exc}"}
 
     if not check_api_server_requirements():
+        try:
+            import aiohttp.web  # noqa: PLC0415
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"aiohttp import failed: {exc}"}
         return {"ok": False, "error": "aiohttp unavailable in embedded env"}
 
     cfg = PlatformConfig(
