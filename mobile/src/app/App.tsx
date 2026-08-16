@@ -8,7 +8,7 @@ import { PresentationSettings } from "../components/PresentationSettings";
 import { SessionDrawer } from "../components/SessionDrawer";
 import { apiKeyStore, type ApiKeyStore } from "../lib/credentials";
 import { createRuntimeClient } from "../lib/runtime/create-runtime-client";
-import { getEmbeddedApiKey } from "../lib/runtime/managed-runtime";
+import { getEmbeddedApiKey, startManagedRuntime } from "../lib/runtime/managed-runtime";
 import { createAttachmentAdapterClient } from "../lib/attachment-adapter-client";
 import { androidBridge, type AndroidBridgeAdapter, type AndroidBridgeStatus } from "../lib/android-bridge";
 import {
@@ -130,6 +130,15 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
       setBridgeError(undefined);
     }
   }, [apiKey, checkBackend, credentialsReady, refreshBridgeStatus]);
+
+  // Consumer flow: opening the app starts the embedded engine (idempotent —
+  // the native plugin guards double-start), then the health check above
+  // reports Online once it answers.
+  useEffect(() => {
+    if (credentialsReady && apiKey) {
+      void startManagedRuntime().then(() => checkBackend());
+    }
+  }, [apiKey, checkBackend, credentialsReady]);
 
 
   const statusLabel =

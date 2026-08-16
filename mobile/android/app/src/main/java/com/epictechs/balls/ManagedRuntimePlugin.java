@@ -61,6 +61,23 @@ public class ManagedRuntimePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void getEmbeddedApiKey(PluginCall call) {
+        try {
+            String key = SecureCredentialsPlugin.ensureEmbeddedApiKey(getContext());
+            if (key == null) {
+                call.reject("Embedded API key generation failed");
+                return;
+            }
+            JSObject result = new JSObject();
+            result.put("apiKey", key);
+            call.resolve(result);
+        } catch (Exception error) {
+            Log.e(TAG, "getEmbeddedApiKey failed", error);
+            call.reject("Unable to read the embedded API key");
+        }
+    }
+
+    @PluginMethod
     public void stop(PluginCall call) {
         try {
             getContext().stopService(new Intent(getContext(), NativeHostService.class));
