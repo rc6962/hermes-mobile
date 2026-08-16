@@ -70,6 +70,7 @@ export interface ManagedRuntimePlugin {
   start(): Promise<ManagedRuntimeStartResult>;
   stop(): Promise<{ stopped: boolean }>;
   status(): Promise<ManagedRuntimeStatus>;
+  hasProviderConfig(): Promise<{ present: boolean }>;
   setProviderConfig(options: { providerJson: string }): Promise<{ stored: boolean }>;
 }
 
@@ -120,6 +121,12 @@ export async function getManagedRuntimeStatus(): Promise<ManagedRuntimeStatus> {
   } catch (error) {
     return { running: false, error: error instanceof Error ? error.message : String(error) };
   }
+}
+
+/** Whether a provider config is already stored (skips re-provisioning). */
+export async function hasProviderConfig(): Promise<boolean> {
+  const result = await getPlugin().hasProviderConfig();
+  return result.present === true;
 }
 
 export async function setManagedProviderConfig(providerJson: string): Promise<{ stored: boolean }> {

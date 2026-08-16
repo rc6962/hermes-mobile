@@ -9,7 +9,13 @@ import { VoiceTab } from "../components/VoiceTab";
 import { SessionDrawer } from "../components/SessionDrawer";
 import { apiKeyStore, type ApiKeyStore } from "../lib/credentials";
 import { createRuntimeClient } from "../lib/runtime/create-runtime-client";
-import { getEmbeddedApiKey, startManagedRuntime } from "../lib/runtime/managed-runtime";
+import {
+  getEmbeddedApiKey,
+  hasProviderConfig,
+  startManagedRuntime,
+  stopManagedRuntime,
+} from "../lib/runtime/managed-runtime";
+import { provisionEpicCloud } from "../lib/provisioning";
 import { createAttachmentAdapterClient } from "../lib/attachment-adapter-client";
 import { androidBridge, type AndroidBridgeAdapter, type AndroidBridgeStatus } from "../lib/android-bridge";
 import {
@@ -160,7 +166,28 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   // reports Online once it answers.
   useEffect(() => {
     if (credentialsReady && apiKey) {
-      void startManagedRuntime().then(() => checkBackend());
+      void (async () => {
+        const started = await startManagedRuntime();
+        if (started.started) {
+          // First launch: provision Epic Cloud (device -> token -> provider
+          // config) and restart the engine so it boots with the provider.
+          try {
+            if (!(await hasProviderConfig())) {
+              const provisioned = await provisionEpicCloud();
+              if (provisioned.provisioned) {
+                await stopManagedRuntime();
+                // The service stops asynchronously; a start inside the stop
+                // window is swallowed by the guard — give it a beat.
+                await new Promise((resolve) => setTimeout(resolve, 4000));
+                await startManagedRuntime();
+              }
+            }
+          } catch {
+            // Provisioning is best-effort at launch; the next launch retries.
+          }
+        }
+        void checkBackend();
+      })();
     }
   }, [apiKey, checkBackend, credentialsReady]);
 

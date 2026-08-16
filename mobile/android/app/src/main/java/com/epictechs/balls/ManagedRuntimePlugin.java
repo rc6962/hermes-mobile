@@ -228,6 +228,18 @@ public class ManagedRuntimePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void hasProviderConfig(PluginCall call) {
+        try {
+            String json = SecureCredentialsPlugin.readProviderConfig(getContext());
+            JSObject result = new JSObject();
+            result.put("present", json != null && !json.trim().isEmpty());
+            call.resolve(result);
+        } catch (Exception e) {
+            call.reject("Provider config check failed", e);
+        }
+    }
+
+    @PluginMethod
     public void setProviderConfig(PluginCall call) {
         String providerJson = call.getString("providerJson");
         if (providerJson == null || providerJson.trim().isEmpty()) {
