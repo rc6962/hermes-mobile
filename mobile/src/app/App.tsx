@@ -8,7 +8,7 @@ import { PairingView } from "../components/PairingView";
 import { PresentationSettings } from "../components/PresentationSettings";
 import { SessionDrawer } from "../components/SessionDrawer";
 import { apiKeyStore, type ApiKeyStore } from "../lib/credentials";
-import { createHermesApi } from "../lib/hermes-api";
+import { createRuntimeClient } from "../lib/runtime/create-runtime-client";
 import { androidBridge, type AndroidBridgeAdapter, type AndroidBridgeStatus } from "../lib/android-bridge";
 import { runTermuxLifecycle, type LifecycleAction } from "../lib/lifecycle-actions";
 import {
@@ -60,7 +60,7 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   }, [credentialStore]);
 
   const api = useMemo(
-    () => createHermesApi({ baseUrl: apiUrl, apiKey: apiKey || "" }),
+    () => createRuntimeClient({ kind: "termux", baseUrl: apiUrl, apiKey: apiKey || "" }),
     [apiKey, apiUrl],
   );
   const [state, dispatch] = useReducer(appStateReducer, undefined, initialAppState);
