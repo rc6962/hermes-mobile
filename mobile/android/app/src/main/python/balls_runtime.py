@@ -14,6 +14,7 @@ import asyncio
 import json
 import logging
 import os
+import subprocess
 import threading
 import time
 import urllib.request
@@ -139,6 +140,101 @@ def status() -> dict:
         with urllib.request.urlopen(
             f"http://{DEFAULT_HOST}:{DEFAULT_PORT}/health", timeout=2
         ) as resp:
+            return {"ok": True, "running": resp.status == 200}
+    except Exception:  # noqa: BLE001
+        return {"ok": True, "running": False}
+
+
+# --- Local Podule: on-device llama.cpp -------------------------------------
+
+LOCAL_LLAMA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "llama")
+LOCAL_LLAMA_SERVER = os.path.join(LOCAL_LLAMA_DIR, "llama-server")
+LOCAL_MODEL_NAME = os.environ.get("BALLS_LOCAL_MODEL_NAME", "qwen3-0.6b")
+
+_llama_proc = None
+
+
+def start_local_model(gguf_path: str, port: int = 8080) -> dict:
+    """Launch the vendored llama-server (OpenAI-compatible) on loopback.
+
+    The GGUF must already be on disk (downloaded at onboarding). Returns the
+    provider fragment the embedded Hermes needs, or an error.
+    """
+    global _llama_proc
+    if _llama_proc is not None and _llama_proc.poll() is None:
+        return {"ok": True, "already_running": True, "port": port}
+
+    gguf = os.path.expanduser(gguf_path)
+    if not os.path.isfile(gguf):
+        return {"ok": False, "error": f"local model not found: {gguf}"}
+    if not os.path.isfile(LOCAL_LLAMA_SERVER):
+        return {"ok": False, "error": f"llama-server missing in {LOCAL_LLAMA_DIR}"}
+
+    env = dict(os.environ)
+    env["LD_LIBRARY_PATH"] = LOCAL_LLAMA_DIR
+    try:
+        _llama_proc = subprocess.Popen(
+            [
+                LOCAL_LLAMA_SERVER,
+                "--model", gguf,
+                "--host", "127.0.0.1",
+                "--port", str(port),
+                "--ctx-size", "4096",
+                "--threads", "4",
+                "--no-warmup",
+            ],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"llama-server failed to start: {exc}"}
+
+    # Wait for the OpenAI-compatible health endpoint (up to 60s — first
+    # load of a 4-bit model on a phone takes a while).
+    deadline = time.time() + 60
+    last_error = "no response"
+    while time.time() < deadline:
+        if _llama_proc.poll() is not None:
+            return {"ok": False, "error": "llama-server exited during startup"}
+        try:
+            with urllib.request.urlopen(
+                f"http://127.0.0.1:{port}/health", timeout=2
+            ) as resp:
+                if resp.status == 200:
+                    return {
+                        "ok": True,
+                        "port": port,
+                        "provider": {
+                            "base_url": f"http://127.0.0.1:{port}/v1",
+                            "model": LOCAL_MODEL_NAME,
+                        },
+                    }
+                last_error = f"health status {resp.status}"
+        except Exception as exc:  # noqa: BLE001
+            last_error = str(exc)
+        time.sleep(1)
+    return {"ok": False, "error": f"llama-server startup timed out: {last_error}"}
+
+
+def stop_local_model() -> dict:
+    """Best-effort stop of the local llama server."""
+    global _llama_proc
+    if _llama_proc is not None:
+        try:
+            _llama_proc.terminate()
+            _llama_proc.wait(timeout=5)
+        except Exception:  # noqa: BLE001
+            _llama_proc.kill()
+        _llama_proc = None
+    return {"ok": True, "stopped": True}
+
+
+def local_model_status() -> dict:
+    """Whether the local llama server is up."""
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=2) as resp:
             return {"ok": True, "running": resp.status == 200}
     except Exception:  # noqa: BLE001
         return {"ok": True, "running": False}

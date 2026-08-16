@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 
 import {
+  downloadLocalModel,
+  getLocalModelStatus,
   getManagedRuntimeStatus,
+  hasLocalModel,
   setManagedProviderConfig,
+  startLocalModel,
   startManagedRuntime,
+  stopLocalModel,
   stopManagedRuntime,
 } from "../lib/runtime/managed-runtime";
 import { CLOUD_ENDPOINT } from "../lib/podule-registry";
@@ -18,6 +23,33 @@ export function RuntimeSettings() {
   const [modelSource, setModelSource] = useState<ModelSource>("epic-cloud");
   const [providerJson, setProviderJson] = useState("");
   const [providerSaved, setProviderSaved] = useState(false);
+  const [localState, setLocalState] = useState<"checking" | "missing" | "ready" | "stopped" | "running">("checking");
+  const [localBusy, setLocalBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    hasLocalModel()
+      .then((result) => {
+        if (!cancelled) {
+          setLocalState(result.present ? "ready" : "missing");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLocalState("missing");
+        }
+      });
+    getLocalModelStatus()
+      .then((status) => {
+        if (!cancelled && status.running) {
+          setLocalState("running");
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +84,51 @@ export function RuntimeSettings() {
     setActionError(undefined);
     const result = await stopManagedRuntime();
     setRunning(!result.stopped);
+  };
+
+  const handleDownload = async () => {
+    setActionError(undefined);
+    setLocalBusy(true);
+    try {
+      const result = await downloadLocalModel();
+      if (result.ok) {
+        setLocalState("ready");
+      } else {
+        setActionError("The local model download did not complete. Try again.");
+      }
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : "Local model download failed.");
+    } finally {
+      setLocalBusy(false);
+    }
+  };
+
+  const handleStartLocal = async () => {
+    setActionError(undefined);
+    setLocalBusy(true);
+    try {
+      const result = await hasLocalModel();
+      const result2 = await startLocalModel(result.path);
+      if (result2.ok) {
+        setLocalState("running");
+      } else {
+        setActionError(result2.error ?? "The local engine would not start.");
+      }
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : "The local engine would not start.");
+    } finally {
+      setLocalBusy(false);
+    }
+  };
+
+  const handleStopLocal = async () => {
+    setActionError(undefined);
+    try {
+      await stopLocalModel();
+      setLocalState("stopped");
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : "The local engine would not stop.");
+    }
   };
 
   const [connecting, setConnecting] = useState(false);
@@ -201,6 +278,36 @@ export function RuntimeSettings() {
             <button type="button" onClick={handleSaveProvider} className="presentation-settings__action">
               {providerSaved ? "Saved. Balls won't forget." : "Save key"}
             </button>
+          </div>
+        </div>
+      ) : null}
+
+      {modelSource === "on-device" ? (
+        <div className="presentation-settings__row">
+          <div>
+            <h3>Balls of Steel model</h3>
+            <p>Download the local model and chat fully offline. Nothing leaves the phone.</p>
+            {localState === "running" ? (
+              <p className="presentation-settings__status">Local engine is running.</p>
+            ) : null}
+            {actionError ? (
+              <p className="presentation-settings__error" role="alert">{actionError}</p>
+            ) : null}
+            <div className="presentation-settings__actions">
+              {localState === "missing" ? (
+                <button type="button" disabled={localBusy} onClick={handleDownload}>
+                  {localBusy ? "Downloading…" : "Download local model (~470 MB)"}
+                </button>
+              ) : null}
+              {localState === "ready" || localState === "stopped" ? (
+                <button type="button" disabled={localBusy} onClick={handleStartLocal}>
+                  Start local engine
+                </button>
+              ) : null}
+              {localState === "running" ? (
+                <button type="button" onClick={handleStopLocal}>Stop local engine</button>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
