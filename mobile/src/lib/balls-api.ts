@@ -134,6 +134,7 @@ export function createBallsApi(options: BallsApiOptions) {
         input: RunSubmissionInput["input"];
         session_id?: string;
         attachment_ids?: string[];
+        toolsets?: string[];
       } = { input: input.input };
       if (input.sessionId) {
         body.session_id = input.sessionId;
@@ -141,6 +142,26 @@ export function createBallsApi(options: BallsApiOptions) {
       if (input.attachmentIds?.length) {
         body.attachment_ids = input.attachmentIds;
       }
+      // Full Hermes toolset, every run.
+      body.toolsets = [
+        "hermes-cli",
+        "web",
+        "search",
+        "vision",
+        "image_gen",
+        "terminal",
+        "skills",
+        "browser",
+        "cronjob",
+        "file",
+        "tts",
+        "todo",
+        "memory",
+        "session_search",
+        "clarify",
+        "code_execution",
+        "delegation",
+      ];
 
       return requestJson<{ run_id: string; status: string }>("/v1/runs", {
         method: "POST",

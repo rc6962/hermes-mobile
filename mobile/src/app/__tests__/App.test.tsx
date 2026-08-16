@@ -182,10 +182,12 @@ describe("App", () => {
         (request) => request.url.endsWith("/v1/runs") && request.init?.method === "POST",
       );
       expect(runRequest).toBeDefined();
-      expect(JSON.parse(String(runRequest?.init?.body))).toEqual({
-        input: "Follow up",
-        session_id: "session-1",
-      });
+      expect(JSON.parse(String(runRequest?.init?.body))).toEqual(
+        expect.objectContaining({
+          input: "Follow up",
+          session_id: "session-1",
+        }),
+      );
     });
   });
 });

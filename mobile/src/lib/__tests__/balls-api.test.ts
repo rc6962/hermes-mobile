@@ -104,6 +104,7 @@ describe("BallsApi", () => {
     expect(JSON.parse(String(calls[0].init?.body))).toEqual({
       input: "Hello Balls",
       session_id: "session-1",
+      toolsets: expect.any(Array),
     });
   });
 
@@ -140,6 +141,7 @@ describe("BallsApi", () => {
       ],
       attachment_ids: ["att_local_document_1"],
       session_id: "session-1",
+      toolsets: expect.any(Array),
     });
   });
 
