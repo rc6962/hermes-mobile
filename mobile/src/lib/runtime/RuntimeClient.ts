@@ -26,6 +26,11 @@ import type {
  */
 export interface RuntimeClient {
   health(): Promise<HealthResponse>;
+  /**
+   * Start the runtime's backing process (Termux gateway or embedded
+   * service). Runtime-specific: throws if the runtime cannot start.
+   */
+  startRuntime(): Promise<{ started: boolean }>;
   capabilities(): Promise<CapabilitiesResponse>;
   listModels(): Promise<unknown>;
   startRun(input: RunSubmissionInput): Promise<RunStarted>;

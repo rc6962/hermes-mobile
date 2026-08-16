@@ -51,6 +51,15 @@ ENTRIES = [
     ("websockets", "15.0.1", "websockets", "websockets"),
     ("pathspec", "1.1.1", "pathspec", "pathspec"),
     ("ptyprocess", "0.7.0", "ptyprocess", "ptyprocess"),
+    # aiohttp family — Hermes API server platform (hermes messaging extra
+    # pins aiohttp==3.14.1 for CVE-2026-34513/34993 fixes). Pure-Python
+    # fallbacks run fine for the loopback API server.
+    ("aiohttp", "3.14.1", "aiohttp", "aiohttp"),
+    ("yarl", None, "yarl", "yarl"),
+    ("multidict", None, "multidict", "multidict"),
+    ("frozenlist", None, "frozenlist", "frozenlist"),
+    ("aiosignal", None, "aiosignal", "aiosignal"),
+    ("attrs", None, "attr", "attr"),
 ]
 
 WORK = os.path.join(os.environ.get("TEMP", "/tmp"), "vendor-all")

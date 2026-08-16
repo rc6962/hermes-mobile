@@ -1,18 +1,21 @@
 import type { HermesApiOptions } from "../hermes-api";
 import type { RuntimeClient } from "./RuntimeClient";
 import { createTermuxRuntimeClient } from "./termux-runtime-client";
+import { createManagedRuntimeClient } from "./managed-runtime-client";
 
 /**
  * Runtime selection dispatcher (composition root helper).
  *
  * `createRuntimeClient` returns the active RuntimeClient for the chosen
- * runtime kind. Phase 0 supports only "termux"; "managed" fails closed
- * with a typed error until the embedded runtime exists.
+ * runtime kind: "termux" (existing Hermes gateway in Termux) or "managed"
+ * (embedded Hermes via Chaquopy, spike M3).
  */
 export type RuntimeKind = "termux" | "managed";
 
 export interface ManagedRuntimeOptions {
   kind: "managed";
+  apiKey: string;
+  baseUrl?: string;
 }
 
 export type CreateRuntimeClientOptions =
@@ -23,5 +26,5 @@ export function createRuntimeClient(options: CreateRuntimeClientOptions): Runtim
   if (options.kind === "termux") {
     return createTermuxRuntimeClient(options);
   }
-  throw new Error("Managed runtime is not available in this build (Phase 0)");
+  return createManagedRuntimeClient({ apiKey: options.apiKey, baseUrl: options.baseUrl });
 }

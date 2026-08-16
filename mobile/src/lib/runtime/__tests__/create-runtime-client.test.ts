@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { createHermesApi } from "../../hermes-api";
 import { createRuntimeClient } from "../create-runtime-client";
+import { createManagedRuntimeClient } from "../managed-runtime-client";
 import type { RuntimeClient } from "../RuntimeClient";
 import { createTermuxRuntimeClient } from "../termux-runtime-client";
 
@@ -68,22 +68,68 @@ describe("RuntimeClient (Phase 0)", () => {
     });
   });
 
-  it("managed kind fails closed with a typed error until the embedded runtime exists", () => {
-    expect(() => createRuntimeClient({ kind: "managed" })).toThrow(
-      /Managed runtime is not available in this build/,
-    );
+  it("managed kind returns a client that delegates health() with bearer auth", async () => {
+    const calls: RecordedCall[] = [];
+    const client = createRuntimeClient({
+      kind: "managed",
+      apiKey: "test-api-key",
+      baseUrl: "http://127.0.0.1:8642",
+    });
+    // Inject fetchImpl by rebuilding through the managed factory path with
+    // a captured fetch (the dispatcher passes through apiKey/baseUrl only).
+    const viaFactory = createManagedRuntimeClient({
+      apiKey: "test-api-key",
+      baseUrl: "http://127.0.0.1:8642",
+      fetchImpl: async (input, init) => {
+        calls.push({ url: String(input), init });
+        return jsonResponse({ status: "ok" });
+      },
+    });
+
+    const health = await viaFactory.health();
+    void client;
+
+    expect(health.status).toBe("ok");
+    expect(calls[0].url).toBe("http://127.0.0.1:8642/health");
+    expect(calls[0].init?.headers).toEqual({ Authorization: "Bearer test-api-key" });
   });
 
-  it("HermesApi is structurally assignable to RuntimeClient (compile-time contract)", () => {
-    // If HermesApi ever drifts from the RuntimeClient surface, this line
-    // stops compiling — that is the Phase 0 compatibility gate.
-    const api = createHermesApi({
+  it("managed startRuntime surfaces the plugin result (started true)", async () => {
+    const { startManagedRuntimeMock } = vi.hoisted(() => ({
+      startManagedRuntimeMock: vi.fn(),
+    }));
+    vi.mock("../managed-runtime", () => ({
+      startManagedRuntime: startManagedRuntimeMock,
+      stopManagedRuntime: vi.fn().mockResolvedValue({ stopped: true }),
+      getManagedRuntimeStatus: vi.fn().mockResolvedValue({ running: true }),
+      setManagedProviderConfig: vi.fn().mockResolvedValue({ stored: true }),
+      isManagedRuntimeAvailable: vi.fn().mockReturnValue(true),
+    }));
+    const { createManagedRuntimeClient: factory } = await import(
+      "../managed-runtime-client"
+    );
+    startManagedRuntimeMock.mockResolvedValue({ started: true });
+
+    const client = factory({ apiKey: "test-api-key" });
+    const result = await client.startRuntime();
+
+    expect(result).toEqual({ started: true });
+    expect(startManagedRuntimeMock).toHaveBeenCalledTimes(1);
+    vi.resetModules();
+  });
+
+  it("runtime factories are structurally assignable to RuntimeClient (compile-time contract)", () => {
+    // If a factory ever drifts from the RuntimeClient surface, these lines
+    // stop compiling — that is the runtime-contract gate.
+    const options = {
       baseUrl: "http://127.0.0.1:8642",
       apiKey: "test-api-key",
       fetchImpl: async () => jsonResponse({ status: "ok" }),
-    });
-    const asRuntimeClient: RuntimeClient = api;
-    expect(asRuntimeClient).toBeDefined();
+    };
+    const termux: RuntimeClient = createTermuxRuntimeClient(options);
+    const managed: RuntimeClient = createManagedRuntimeClient(options);
+    expect(termux).toBeDefined();
+    expect(managed).toBeDefined();
   });
 
   it("createTermuxRuntimeClient returns the same client shape as createRuntimeClient(termux)", async () => {

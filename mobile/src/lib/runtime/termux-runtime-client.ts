@@ -1,4 +1,5 @@
 import { createHermesApi, type HermesApiOptions } from "../hermes-api";
+import { runTermuxLifecycle } from "../lifecycle-actions";
 import type { RuntimeClient } from "./RuntimeClient";
 
 /**
@@ -15,5 +16,16 @@ import type { RuntimeClient } from "./RuntimeClient";
  * the composition root. This keeps credentials out of the runtime layer.
  */
 export function createTermuxRuntimeClient(options: HermesApiOptions): RuntimeClient {
-  return createHermesApi(options) as RuntimeClient;
+  const api = createHermesApi(options);
+
+  return {
+    ...api,
+    async startRuntime() {
+      const result = await runTermuxLifecycle("start");
+      if (!result.accepted) {
+        throw new Error("Termux runtime start was not accepted");
+      }
+      return { started: true };
+    },
+  };
 }

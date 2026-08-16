@@ -41,3 +41,6 @@ Thumbs.db
 
 # Local verification artifacts, screenshots, dumps, and device credentials
 .tmp/
+
+# Hermes desktop chat attachments (never commit)
+.hermes/desktop-attachments/
