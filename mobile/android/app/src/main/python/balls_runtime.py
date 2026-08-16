@@ -11,11 +11,28 @@ embedded Hermes has working model credentials).
 """
 
 import asyncio
+import ctypes
 import json
 import logging
 import os
 import threading
 import time
+
+# Chaquopy loads libpython RTLD_LOCAL — abi3 extensions (jiter) need CPython
+# symbols in the GLOBAL scope or dlopen fails ("cannot locate symbol").
+# Try the absolute path first (the AssetFinder dir), then the SONAME.
+_LOG = logging.getLogger("balls_runtime")
+for _cand in (
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "libpython3.11.so"),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "libs", "libpython3.11.so"),
+    "libpython3.11.so",
+):
+    try:
+        ctypes.CDLL(_cand, mode=ctypes.RTLD_GLOBAL)
+        _LOG.info("libpython promoted to global scope via %s", _cand)
+        break
+    except OSError as exc:
+        _LOG.warning("libpython promotion via %s failed: %r", _cand, exc)
 import urllib.request
 from pathlib import Path
 
@@ -38,7 +55,12 @@ def _run_loop(loop: asyncio.AbstractEventLoop, adapter) -> None:
 
 
 def _write_provider_config(home: Path, provider_json: str | None) -> None:
-    """Write a minimal cli-config.yaml so the embedded Hermes has providers."""
+    """Write cli-config.yaml so the embedded Hermes has a working provider.
+
+    Shape per hermes 0.19: top-level ``model: "<provider>/<model>"`` string,
+    a ``providers`` dict with base_url/api_key/model, and a
+    ``custom_providers`` block with provider_name/default_model.
+    """
     if not provider_json:
         return
     try:
@@ -46,18 +68,45 @@ def _write_provider_config(home: Path, provider_json: str | None) -> None:
     except json.JSONDecodeError:
         _LOG.warning("provider JSON invalid; skipping config write")
         return
-    cfg_path = home / "cli-config.yaml"
-    lines = ["platforms:", "  api_server:", "    enabled: true"]
     providers = payload.get("providers")
-    if isinstance(providers, dict) and providers:
-        lines.append("providers:")
-        for name, conf in providers.items():
-            lines.append(f"  {name}:")
-            for key, value in conf.items():
-                lines.append(f"    {key}: {value}")
+    if not isinstance(providers, dict) or not providers:
+        return
+    name, conf = next(iter(providers.items()))
+    base_url = conf.get("base_url")
+    api_key = conf.get("api_key")
+    model = conf.get("model") or ""
+    if not (base_url and api_key and model):
+        _LOG.warning("provider config incomplete; skipping")
+        return
+    lines = [
+        "model:",
+        f"  provider: \"custom:{name}\"",
+        f"  name: {model}",
+        "platforms:",
+        "  api_server:",
+        "    enabled: true",
+        "custom_providers:",
+        "  - name: " + name,
+        f"    base_url: {base_url}",
+        f"    key_env: {name.upper()}_API_KEY",
+    ]
+    cfg_path = home / "config.yaml"
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
     cfg_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    _LOG.info("wrote cli-config.yaml (%d lines)", len(lines))
+    # Custom-provider keys live in the process env (key_env contract).
+    os.environ[f"{name.upper()}_API_KEY"] = api_key
+    _LOG.info("wrote config.yaml (%d lines); env key set for %s", len(lines), name)
+
+
+def _diagnose_imports() -> None:
+    """Log the import chain the OpenAI SDK needs — the distro failure has
+    been blocking runs with no visible cause."""
+    for mod in ("distro", "httpx", "openai", "jiter"):
+        try:
+            m = __import__(mod)
+            logging.getLogger("balls_runtime").warning("import %s OK (%s)", mod, getattr(m, "__file__", "?"))
+        except Exception as exc:  # noqa: BLE001
+            logging.getLogger("balls_runtime").warning("import %s FAILED: %r", mod, exc)
 
 
 def start_runtime(

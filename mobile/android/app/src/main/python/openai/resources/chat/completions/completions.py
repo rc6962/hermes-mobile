@@ -301,9 +301,6 @@ class Completions(SyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
-        Returns a chat completion object, or a streamed sequence of chat completion
-        chunk objects if the request is streamed.
-
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -439,9 +436,8 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
-              hashing their username or email address, in order to avoid sending us any
-              identifying information.
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -607,9 +603,6 @@ class Completions(SyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
-        Returns a chat completion object, or a streamed sequence of chat completion
-        chunk objects if the request is streamed.
-
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -754,9 +747,8 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
-              hashing their username or email address, in order to avoid sending us any
-              identifying information.
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -913,9 +905,6 @@ class Completions(SyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
-        Returns a chat completion object, or a streamed sequence of chat completion
-        chunk objects if the request is streamed.
-
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -1060,9 +1049,8 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
-              hashing their username or email address, in order to avoid sending us any
-              identifying information.
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -1358,10 +1346,12 @@ class Completions(SyncAPIResource):
 
           limit: Number of Chat Completions to retrieve.
 
-          metadata:
-              A list of metadata keys to filter the Chat Completions by. Example:
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
 
-              `metadata[key1]=value1&metadata[key2]=value2`
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The model used to generate the Chat Completions.
 
@@ -1797,9 +1787,6 @@ class AsyncCompletions(AsyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
-        Returns a chat completion object, or a streamed sequence of chat completion
-        chunk objects if the request is streamed.
-
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -1935,9 +1922,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
-              hashing their username or email address, in order to avoid sending us any
-              identifying information.
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -2103,9 +2089,6 @@ class AsyncCompletions(AsyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
-        Returns a chat completion object, or a streamed sequence of chat completion
-        chunk objects if the request is streamed.
-
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -2250,9 +2233,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
-              hashing their username or email address, in order to avoid sending us any
-              identifying information.
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -2409,9 +2391,6 @@ class AsyncCompletions(AsyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
-        Returns a chat completion object, or a streamed sequence of chat completion
-        chunk objects if the request is streamed.
-
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -2556,9 +2535,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
-              hashing their username or email address, in order to avoid sending us any
-              identifying information.
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -2854,10 +2832,12 @@ class AsyncCompletions(AsyncAPIResource):
 
           limit: Number of Chat Completions to retrieve.
 
-          metadata:
-              A list of metadata keys to filter the Chat Completions by. Example:
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
 
-              `metadata[key1]=value1&metadata[key2]=value2`
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The model used to generate the Chat Completions.
 

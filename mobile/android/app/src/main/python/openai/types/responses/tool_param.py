@@ -16,8 +16,6 @@ from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .function_shell_tool_param import FunctionShellToolParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam
-from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
-from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
 
 __all__ = [
     "ToolParam",
@@ -31,7 +29,6 @@ __all__ = [
     "CodeInterpreter",
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
-    "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
@@ -177,11 +174,6 @@ class Mcp(TypedDict, total=False):
     """
 
 
-CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy: TypeAlias = Union[
-    ContainerNetworkPolicyDisabledParam, ContainerNetworkPolicyAllowlistParam
-]
-
-
 class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     """Configuration for a code interpreter container.
 
@@ -196,9 +188,6 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
 
     memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]]
     """The memory limit for the code interpreter container."""
-
-    network_policy: CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy
-    """Network access policy for the container."""
 
 
 CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInterpreterToolAuto]
@@ -238,9 +227,6 @@ class ImageGeneration(TypedDict, total=False):
     type: Required[Literal["image_generation"]]
     """The type of the image generation tool. Always `image_generation`."""
 
-    action: Literal["generate", "edit", "auto"]
-    """Whether to generate a new image or edit an existing image. Default: `auto`."""
-
     background: Literal["transparent", "opaque", "auto"]
     """Background type for the generated image.
 
@@ -251,8 +237,8 @@ class ImageGeneration(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
-    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
+    for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
+    `low`. Defaults to `low`.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -261,7 +247,7 @@ class ImageGeneration(TypedDict, total=False):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"]]
+    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini"]]
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Literal["auto", "low"]

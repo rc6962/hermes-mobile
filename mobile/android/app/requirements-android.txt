@@ -74,3 +74,7 @@ pathspec==1.1.1
 # (logs + returns None when missing); conversation_compression and pet/
 # features degrade; standard JPEG/PNG inline vision is unaffected.
 ptyprocess>=0.7.0,<1
+
+# distro: openai SDK hard-dep (platform detection); vendored copy in
+# src/main/python/ as backup, but pip is the authoritative source.
+distro>=1.9.0,<2

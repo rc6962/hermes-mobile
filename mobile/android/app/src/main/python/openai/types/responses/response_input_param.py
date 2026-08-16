@@ -6,9 +6,7 @@ from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
-from .local_environment_param import LocalEnvironmentParam
 from .easy_input_message_param import EasyInputMessageParam
-from .container_reference_param import ContainerReferenceParam
 from .response_output_message_param import ResponseOutputMessageParam
 from .response_reasoning_item_param import ResponseReasoningItemParam
 from .response_custom_tool_call_param import ResponseCustomToolCallParam
@@ -37,7 +35,6 @@ __all__ = [
     "LocalShellCallOutput",
     "ShellCall",
     "ShellCallAction",
-    "ShellCallEnvironment",
     "ShellCallOutput",
     "ApplyPatchCall",
     "ApplyPatchCallOperation",
@@ -238,9 +235,6 @@ class ShellCallAction(TypedDict, total=False):
     """Maximum wall-clock time in milliseconds to allow the shell commands to run."""
 
 
-ShellCallEnvironment: TypeAlias = Union[LocalEnvironmentParam, ContainerReferenceParam]
-
-
 class ShellCall(TypedDict, total=False):
     """A tool representing a request to execute one or more shell commands."""
 
@@ -258,9 +252,6 @@ class ShellCall(TypedDict, total=False):
 
     Populated when this item is returned via API.
     """
-
-    environment: Optional[ShellCallEnvironment]
-    """The environment to execute the shell commands in."""
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]]
     """The status of the shell call.
@@ -295,9 +286,6 @@ class ShellCallOutput(TypedDict, total=False):
     The maximum number of UTF-8 characters captured for this shell call's combined
     output.
     """
-
-    status: Optional[Literal["in_progress", "completed", "incomplete"]]
-    """The status of the shell call output."""
 
 
 class ApplyPatchCallOperationCreateFile(TypedDict, total=False):

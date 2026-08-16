@@ -57,7 +57,7 @@ export async function provisionEpicCloud(
 
   const config = JSON.stringify({
     providers: {
-      "opencode-go": {
+      custom_openai_balls: {
         base_url: CLOUD_ENDPOINT,
         api_key: data.token,
         model: "deepseek-v4-flash",

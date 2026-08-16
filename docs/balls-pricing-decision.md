@@ -30,6 +30,8 @@ Four tiers, one add-on, universal voice rules. Balls Deep is the top package —
 
 **Balls Deep includes UNLIMITED voice.** The meter is gone; the marketing promise is real. The following published Fair Use Policy bounds the tail (industry-standard practice — every "unlimited" phone/data plan has one):
 
+> **⚠️ PUBLIC-POSITION RULE (locked 2026-08-16):** the 3,000-min threshold is **INTERNAL OPS ONLY — never published.** Public copy says "generous fair-use allowance, calibrated to be invisible to 99%+ of users" + the proportionality clause. Publishing the number invites "3,000 minutes isn't unlimited" attacks and threshold-gaming. Site scrubbed 2026-08-16 (0 occurrences).
+
 | Rule | Value | Rationale |
 |---|---|---|
 | **Fair-use threshold** | **3,000 agent-talk min/mo** (~50 hrs), monthly reset | Invisible to 99%+ of users; calibrated to the owner's own usage (~2,100 min/mo) + 40% headroom. "Fair use is where the owner lives." |

@@ -76,7 +76,7 @@ class Videos(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a new video generation job from a prompt and optional reference assets.
+        Create a video
 
         Args:
           prompt: Text prompt that describes the video to generate.
@@ -209,7 +209,7 @@ class Videos(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Fetch the latest metadata for a generated video.
+        Retrieve a video
 
         Args:
           extra_headers: Send extra headers
@@ -244,7 +244,7 @@ class Videos(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Video]:
         """
-        List recently generated videos for the current project.
+        List videos
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -294,7 +294,7 @@ class Videos(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
-        Permanently delete a completed or failed video and its stored assets.
+        Delete a video
 
         Args:
           extra_headers: Send extra headers
@@ -327,13 +327,12 @@ class Videos(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
-        """
-        Download the generated video bytes or a derived preview asset.
-
-        Streams the rendered video content for the specified video job.
+        """Download video content
 
         Args:
-          variant: Which downloadable asset to return. Defaults to the MP4 video.
+          variant: Which downloadable asset to return.
+
+        Defaults to the MP4 video.
 
           extra_headers: Send extra headers
 
@@ -371,7 +370,7 @@ class Videos(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a remix of a completed video using a refreshed prompt.
+        Create a video remix
 
         Args:
           prompt: Updated text prompt that directs the remix generation.
@@ -432,7 +431,7 @@ class AsyncVideos(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a new video generation job from a prompt and optional reference assets.
+        Create a video
 
         Args:
           prompt: Text prompt that describes the video to generate.
@@ -565,7 +564,7 @@ class AsyncVideos(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Fetch the latest metadata for a generated video.
+        Retrieve a video
 
         Args:
           extra_headers: Send extra headers
@@ -600,7 +599,7 @@ class AsyncVideos(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Video, AsyncConversationCursorPage[Video]]:
         """
-        List recently generated videos for the current project.
+        List videos
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -650,7 +649,7 @@ class AsyncVideos(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
-        Permanently delete a completed or failed video and its stored assets.
+        Delete a video
 
         Args:
           extra_headers: Send extra headers
@@ -683,13 +682,12 @@ class AsyncVideos(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
-        """
-        Download the generated video bytes or a derived preview asset.
-
-        Streams the rendered video content for the specified video job.
+        """Download video content
 
         Args:
-          variant: Which downloadable asset to return. Defaults to the MP4 video.
+          variant: Which downloadable asset to return.
+
+        Defaults to the MP4 video.
 
           extra_headers: Send extra headers
 
@@ -729,7 +727,7 @@ class AsyncVideos(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a remix of a completed video using a refreshed prompt.
+        Create a video remix
 
         Args:
           prompt: Updated text prompt that directs the remix generation.

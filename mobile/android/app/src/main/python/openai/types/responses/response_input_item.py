@@ -5,9 +5,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
-from .local_environment import LocalEnvironment
 from .easy_input_message import EasyInputMessage
-from .container_reference import ContainerReference
 from .response_output_message import ResponseOutputMessage
 from .response_reasoning_item import ResponseReasoningItem
 from .response_custom_tool_call import ResponseCustomToolCall
@@ -35,7 +33,6 @@ __all__ = [
     "LocalShellCallOutput",
     "ShellCall",
     "ShellCallAction",
-    "ShellCallEnvironment",
     "ShellCallOutput",
     "ApplyPatchCall",
     "ApplyPatchCallOperation",
@@ -236,11 +233,6 @@ class ShellCallAction(BaseModel):
     """Maximum wall-clock time in milliseconds to allow the shell commands to run."""
 
 
-ShellCallEnvironment: TypeAlias = Annotated[
-    Union[LocalEnvironment, ContainerReference, None], PropertyInfo(discriminator="type")
-]
-
-
 class ShellCall(BaseModel):
     """A tool representing a request to execute one or more shell commands."""
 
@@ -258,9 +250,6 @@ class ShellCall(BaseModel):
 
     Populated when this item is returned via API.
     """
-
-    environment: Optional[ShellCallEnvironment] = None
-    """The environment to execute the shell commands in."""
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the shell call.
@@ -295,9 +284,6 @@ class ShellCallOutput(BaseModel):
     The maximum number of UTF-8 characters captured for this shell call's combined
     output.
     """
-
-    status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
-    """The status of the shell call output."""
 
 
 class ApplyPatchCallOperationCreateFile(BaseModel):

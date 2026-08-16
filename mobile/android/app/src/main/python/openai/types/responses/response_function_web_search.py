@@ -6,14 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = [
-    "ResponseFunctionWebSearch",
-    "Action",
-    "ActionSearch",
-    "ActionSearchSource",
-    "ActionOpenPage",
-    "ActionFind",
-]
+__all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionSearchSource", "ActionOpenPage", "ActionFind"]
 
 
 class ActionSearchSource(BaseModel):
@@ -48,17 +41,17 @@ class ActionOpenPage(BaseModel):
     type: Literal["open_page"]
     """The action type."""
 
-    url: Optional[str] = None
+    url: str
     """The URL opened by the model."""
 
 
 class ActionFind(BaseModel):
-    """Action type "find_in_page": Searches for a pattern within a loaded page."""
+    """Action type "find": Searches for a pattern within a loaded page."""
 
     pattern: str
     """The pattern or text to search for within the page."""
 
-    type: Literal["find_in_page"]
+    type: Literal["find"]
     """The action type."""
 
     url: str
@@ -81,7 +74,7 @@ class ResponseFunctionWebSearch(BaseModel):
     action: Action
     """
     An object describing the specific action taken in this web search call. Includes
-    details on how the model used the web (search, open_page, find_in_page).
+    details on how the model used the web (search, open_page, find).
     """
 
     status: Literal["in_progress", "searching", "completed", "failed"]

@@ -63,7 +63,7 @@ class Sessions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ChatSession:
         """
-        Create a ChatKit session.
+        Create a ChatKit session
 
         Args:
           user: A free-form string that identifies your end user; ensures this Session can
@@ -117,9 +117,7 @@ class Sessions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ChatSession:
         """
-        Cancel an active ChatKit session and return its most recent metadata.
-
-        Cancelling prevents new requests from using the issued client secret.
+        Cancel a ChatKit session
 
         Args:
           extra_headers: Send extra headers
@@ -178,7 +176,7 @@ class AsyncSessions(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ChatSession:
         """
-        Create a ChatKit session.
+        Create a ChatKit session
 
         Args:
           user: A free-form string that identifies your end user; ensures this Session can
@@ -232,9 +230,7 @@ class AsyncSessions(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ChatSession:
         """
-        Cancel an active ChatKit session and return its most recent metadata.
-
-        Cancelling prevents new requests from using the issued client secret.
+        Cancel a ChatKit session
 
         Args:
           extra_headers: Send extra headers

@@ -125,7 +125,11 @@ public class NativeHostService extends Service {
             sStarting = true;
         }
         try {
-            Python.start(new AndroidPlatform(this));
+            // Chaquopy allows exactly ONE Python.start per process — the
+            // service can be restarted (stop → start) in the same process.
+            if (!Python.isStarted()) {
+                Python.start(new AndroidPlatform(this));
+            }
             Python py = Python.getInstance();
             pyModule = py.getModule("balls_runtime");
             PyObject result = pyModule.callAttr("start_runtime", ballsHome, apiKey, DEFAULT_PORT, providerJson);

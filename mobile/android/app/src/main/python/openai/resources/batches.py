@@ -47,13 +47,7 @@ class Batches(SyncAPIResource):
         *,
         completion_window: Literal["24h"],
         endpoint: Literal[
-            "/v1/responses",
-            "/v1/chat/completions",
-            "/v1/embeddings",
-            "/v1/completions",
-            "/v1/moderations",
-            "/v1/images/generations",
-            "/v1/images/edits",
+            "/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions", "/v1/moderations"
         ],
         input_file_id: str,
         metadata: Optional[Metadata] | Omit = omit,
@@ -74,9 +68,9 @@ class Batches(SyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
-              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
-              of 50,000 embedding inputs across all requests in the batch.
+              and `/v1/moderations` are supported. Note that `/v1/embeddings` batches are also
+              restricted to a maximum of 50,000 embedding inputs across all requests in the
+              batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -271,13 +265,7 @@ class AsyncBatches(AsyncAPIResource):
         *,
         completion_window: Literal["24h"],
         endpoint: Literal[
-            "/v1/responses",
-            "/v1/chat/completions",
-            "/v1/embeddings",
-            "/v1/completions",
-            "/v1/moderations",
-            "/v1/images/generations",
-            "/v1/images/edits",
+            "/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions", "/v1/moderations"
         ],
         input_file_id: str,
         metadata: Optional[Metadata] | Omit = omit,
@@ -298,9 +286,9 @@ class AsyncBatches(AsyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
-              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
-              of 50,000 embedding inputs across all requests in the batch.
+              and `/v1/moderations` are supported. Note that `/v1/embeddings` batches are also
+              restricted to a maximum of 50,000 embedding inputs across all requests in the
+              batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 

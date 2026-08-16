@@ -44,7 +44,6 @@ if TYPE_CHECKING:
         files,
         images,
         models,
-        skills,
         videos,
         batches,
         uploads,
@@ -63,6 +62,7 @@ if TYPE_CHECKING:
     from .resources.models import Models, AsyncModels
     from .resources.videos import Videos, AsyncVideos
     from .resources.batches import Batches, AsyncBatches
+    from .resources.webhooks import Webhooks, AsyncWebhooks
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
     from .resources.embeddings import Embeddings, AsyncEmbeddings
@@ -70,10 +70,8 @@ if TYPE_CHECKING:
     from .resources.completions import Completions, AsyncCompletions
     from .resources.evals.evals import Evals, AsyncEvals
     from .resources.moderations import Moderations, AsyncModerations
-    from .resources.skills.skills import Skills, AsyncSkills
     from .resources.uploads.uploads import Uploads, AsyncUploads
     from .resources.realtime.realtime import Realtime, AsyncRealtime
-    from .resources.webhooks.webhooks import Webhooks, AsyncWebhooks
     from .resources.responses.responses import Responses, AsyncResponses
     from .resources.containers.containers import Containers, AsyncContainers
     from .resources.fine_tuning.fine_tuning import FineTuning, AsyncFineTuning
@@ -291,12 +289,6 @@ class OpenAI(SyncAPIClient):
         from .resources.containers import Containers
 
         return Containers(self)
-
-    @cached_property
-    def skills(self) -> Skills:
-        from .resources.skills import Skills
-
-        return Skills(self)
 
     @cached_property
     def videos(self) -> Videos:
@@ -650,12 +642,6 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncContainers(self)
 
     @cached_property
-    def skills(self) -> AsyncSkills:
-        from .resources.skills import AsyncSkills
-
-        return AsyncSkills(self)
-
-    @cached_property
     def videos(self) -> AsyncVideos:
         from .resources.videos import AsyncVideos
 
@@ -912,12 +898,6 @@ class OpenAIWithRawResponse:
         return ContainersWithRawResponse(self._client.containers)
 
     @cached_property
-    def skills(self) -> skills.SkillsWithRawResponse:
-        from .resources.skills import SkillsWithRawResponse
-
-        return SkillsWithRawResponse(self._client.skills)
-
-    @cached_property
     def videos(self) -> videos.VideosWithRawResponse:
         from .resources.videos import VideosWithRawResponse
 
@@ -1037,12 +1017,6 @@ class AsyncOpenAIWithRawResponse:
         from .resources.containers import AsyncContainersWithRawResponse
 
         return AsyncContainersWithRawResponse(self._client.containers)
-
-    @cached_property
-    def skills(self) -> skills.AsyncSkillsWithRawResponse:
-        from .resources.skills import AsyncSkillsWithRawResponse
-
-        return AsyncSkillsWithRawResponse(self._client.skills)
 
     @cached_property
     def videos(self) -> videos.AsyncVideosWithRawResponse:
@@ -1166,12 +1140,6 @@ class OpenAIWithStreamedResponse:
         return ContainersWithStreamingResponse(self._client.containers)
 
     @cached_property
-    def skills(self) -> skills.SkillsWithStreamingResponse:
-        from .resources.skills import SkillsWithStreamingResponse
-
-        return SkillsWithStreamingResponse(self._client.skills)
-
-    @cached_property
     def videos(self) -> videos.VideosWithStreamingResponse:
         from .resources.videos import VideosWithStreamingResponse
 
@@ -1291,12 +1259,6 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.containers import AsyncContainersWithStreamingResponse
 
         return AsyncContainersWithStreamingResponse(self._client.containers)
-
-    @cached_property
-    def skills(self) -> skills.AsyncSkillsWithStreamingResponse:
-        from .resources.skills import AsyncSkillsWithStreamingResponse
-
-        return AsyncSkillsWithStreamingResponse(self._client.skills)
 
     @cached_property
     def videos(self) -> videos.AsyncVideosWithStreamingResponse:

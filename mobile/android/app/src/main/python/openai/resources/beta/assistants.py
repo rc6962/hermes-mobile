@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import typing_extensions
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
@@ -52,7 +51,6 @@ class Assistants(SyncAPIResource):
         """
         return AssistantsWithStreamingResponse(self)
 
-    @typing_extensions.deprecated("deprecated")
     def create(
         self,
         *,
@@ -185,7 +183,6 @@ class Assistants(SyncAPIResource):
             cast_to=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     def retrieve(
         self,
         assistant_id: str,
@@ -220,7 +217,6 @@ class Assistants(SyncAPIResource):
             cast_to=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     def update(
         self,
         assistant_id: str,
@@ -404,7 +400,6 @@ class Assistants(SyncAPIResource):
             cast_to=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     def list(
         self,
         *,
@@ -470,7 +465,6 @@ class Assistants(SyncAPIResource):
             model=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     def delete(
         self,
         assistant_id: str,
@@ -526,7 +520,6 @@ class AsyncAssistants(AsyncAPIResource):
         """
         return AsyncAssistantsWithStreamingResponse(self)
 
-    @typing_extensions.deprecated("deprecated")
     async def create(
         self,
         *,
@@ -659,7 +652,6 @@ class AsyncAssistants(AsyncAPIResource):
             cast_to=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     async def retrieve(
         self,
         assistant_id: str,
@@ -694,7 +686,6 @@ class AsyncAssistants(AsyncAPIResource):
             cast_to=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     async def update(
         self,
         assistant_id: str,
@@ -878,7 +869,6 @@ class AsyncAssistants(AsyncAPIResource):
             cast_to=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     def list(
         self,
         *,
@@ -944,7 +934,6 @@ class AsyncAssistants(AsyncAPIResource):
             model=Assistant,
         )
 
-    @typing_extensions.deprecated("deprecated")
     async def delete(
         self,
         assistant_id: str,
@@ -984,30 +973,20 @@ class AssistantsWithRawResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.to_raw_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.to_raw_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1015,30 +994,20 @@ class AsyncAssistantsWithRawResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.async_to_raw_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1046,30 +1015,20 @@ class AssistantsWithStreamingResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = to_streamed_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = to_streamed_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = to_streamed_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = to_streamed_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1077,28 +1036,18 @@ class AsyncAssistantsWithStreamingResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = async_to_streamed_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = async_to_streamed_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = async_to_streamed_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = async_to_streamed_response_wrapper(
+            assistants.delete,
         )
