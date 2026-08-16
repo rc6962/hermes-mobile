@@ -12,7 +12,6 @@ import {
   stopManagedRuntime,
 } from "../lib/runtime/managed-runtime";
 import { CLOUD_ENDPOINT } from "../lib/podule-registry";
-import { provisionEpicCloud } from "../lib/provisioning";
 
 type ModelSource = "epic-cloud" | "on-device" | "custom";
 
@@ -131,25 +130,6 @@ export function RuntimeSettings() {
     }
   };
 
-  const [connecting, setConnecting] = useState(false);
-  const [connected, setConnected] = useState(false);
-
-  const handleConnect = async () => {
-    setActionError(undefined);
-    setConnecting(true);
-    try {
-      const result = await provisionEpicCloud();
-      if (result.provisioned) {
-        setConnected(true);
-        setProviderSaved(true);
-      } else {
-        setActionError(result.error ?? "Epic Cloud connection failed.");
-      }
-    } finally {
-      setConnecting(false);
-    }
-  };
-
   const handleSaveProvider = async () => {
     setActionError(undefined);
     if (!providerJson.trim()) {
@@ -162,7 +142,7 @@ export function RuntimeSettings() {
       // the only user input; endpoint + model come from the registry.
       config = JSON.stringify({
         providers: {
-          "opencode-go": {
+          balls: {
             base_url: CLOUD_ENDPOINT,
             api_key: providerJson.trim(),
             model: "deepseek-v4-flash",
@@ -251,33 +231,10 @@ export function RuntimeSettings() {
         <div className="presentation-settings__row">
           <div>
             <h3>Epic Cloud</h3>
-            <p>Connect once — Balls provisions its own key automatically.</p>
-            {connected ? (
-              <p className="muted">Connected. Balls talks to Epic's models.</p>
-            ) : (
-              <button
-                type="button"
-                onClick={handleConnect}
-                disabled={connecting}
-                className="presentation-settings__action"
-              >
-                {connecting ? "Connecting…" : "Connect to Epic Cloud"}
-              </button>
-            )}
-            <textarea
-              className="presentation-settings__textarea"
-              aria-label="Epic Cloud key (optional)"
-              value={providerJson}
-              onChange={(event) => {
-                setProviderJson(event.target.value);
-                setProviderSaved(false);
-              }}
-              placeholder="Optional: paste a key instead of auto-connecting"
-              rows={2}
-            />
-            <button type="button" onClick={handleSaveProvider} className="presentation-settings__action">
-              {providerSaved ? "Saved. Balls won't forget." : "Save key"}
-            </button>
+            <p>
+              Balls connects to Epic's hosted models automatically. Nothing
+              to set up — it just works.
+            </p>
           </div>
         </div>
       ) : null}

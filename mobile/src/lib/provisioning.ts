@@ -1,4 +1,4 @@
-import { CLOUD_ENDPOINT } from "./podule-registry";
+import { CLOUD_ENDPOINT, CLOUD_PROVIDER_NAME } from "./podule-registry";
 import { getDeviceId, setManagedProviderConfig } from "./runtime/managed-runtime";
 
 export interface ProvisionResult {
@@ -57,7 +57,7 @@ export async function provisionEpicCloud(
 
   const config = JSON.stringify({
     providers: {
-      custom_openai_balls: {
+      balls: {
         base_url: CLOUD_ENDPOINT,
         api_key: data.token,
         model: "deepseek-v4-flash",

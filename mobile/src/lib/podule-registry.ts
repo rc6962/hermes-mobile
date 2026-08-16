@@ -59,6 +59,14 @@ export type ResolvedRoute =
 
 export const CLOUD_ENDPOINT = "https://balls.epictechs.net/v1";
 
+/**
+ * The single provider name for Epic Cloud. EVERY writer (provisioning,
+ * settings save, runtime config) must reference this — the engine resolves
+ * it as `custom:<CLOUD_PROVIDER_NAME>`; a wrong name means a 401 routing
+ * collision with a built-in provider.
+ */
+export const CLOUD_PROVIDER_NAME = "balls";
+
 export function resolveRoute(
   pods: Podule[],
   state: PoduleRegistryState,

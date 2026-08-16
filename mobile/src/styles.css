@@ -89,6 +89,8 @@ h1 {
   margin-bottom: 0;
   font-size: clamp(1.6rem, 5vw, 2.15rem);
   letter-spacing: -0.04em;
+  color: #f8fafc;
+  text-shadow: 0 0 18px rgba(125, 211, 252, 0.45), 0 0 42px rgba(37, 99, 235, 0.35);
 }
 
 h2 {
