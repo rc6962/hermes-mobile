@@ -9,6 +9,13 @@ export interface CapabilitiesResponse {
   model?: string;
   auth?: { type?: string; required?: boolean };
   features?: Record<string, boolean>;
+  attachments?: {
+    image_types?: string[];
+    document_types?: string[];
+    max_file_bytes?: number;
+    max_document_text_chars?: number;
+    document_intake?: Record<string, boolean>;
+  };
   endpoints?: Record<string, unknown>;
   [key: string]: unknown;
 }
@@ -16,6 +23,27 @@ export interface CapabilitiesResponse {
 export interface RunStarted {
   runId: string;
   status: string;
+}
+
+export interface TextContentPart {
+  type: "text";
+  text: string;
+}
+
+export interface ImageContentPart {
+  type: "image_url";
+  image_url: {
+    url: string;
+    detail?: "auto" | "low" | "high";
+  };
+}
+
+export type RunInput = string | Array<TextContentPart | ImageContentPart>;
+
+export interface RunSubmissionInput {
+  input: RunInput;
+  sessionId?: string;
+  attachmentIds?: string[];
 }
 
 export type ApprovalChoice = "once" | "session" | "always" | "deny";

@@ -6,7 +6,7 @@ import "./styles.css";
 
 const root = document.getElementById("root");
 if (!root) {
-  throw new Error("Hermes Mobile root element is missing");
+  throw new Error("Balls root element is missing");
 }
 
 createRoot(root).render(

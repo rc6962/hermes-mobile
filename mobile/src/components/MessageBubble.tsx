@@ -8,7 +8,7 @@ export interface MessageBubbleProps {
 export function MessageBubble({ role, children }: MessageBubbleProps) {
   return (
     <article className={`message-bubble message-bubble--${role}`} aria-label={`${role} message`}>
-      <span className="message-bubble__role">{role === "user" ? "You" : "Hermes"}</span>
+      <span className="message-bubble__role">{role === "user" ? "You" : "Balls"}</span>
       <div className="message-bubble__content">{children}</div>
     </article>
   );

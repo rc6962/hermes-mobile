@@ -39,6 +39,32 @@ const terminalStatuses = new Set<RunStatus>([
   "cancelled",
 ]);
 
+export function runStatusLabel(state: RunState): string {
+  switch (state.status) {
+    case "queued":
+      return "Balls is queued…";
+    case "waiting_for_approval":
+      return "Waiting for approval…";
+    case "stopping":
+      return "Stopping Balls…";
+    case "completed":
+      return "Balls completed the run.";
+    case "failed":
+      return "Balls could not complete the run.";
+    case "cancelled":
+      return "Balls stopped the run.";
+    case "running": {
+      const activeTool = [...state.tools].reverse().find((tool) => tool.status === "running");
+      if (activeTool) {
+        return `Balls is running ${activeTool.name}…`;
+      }
+      return state.assistantText ? "Balls is responding…" : "Balls is thinking…";
+    }
+    case "idle":
+      return "Balls is thinking…";
+  }
+}
+
 export function initialRunState(): RunState {
   return {
     status: "idle",

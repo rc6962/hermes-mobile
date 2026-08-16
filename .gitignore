@@ -38,3 +38,6 @@ android/app/build/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local verification artifacts, screenshots, dumps, and device credentials
+.tmp/

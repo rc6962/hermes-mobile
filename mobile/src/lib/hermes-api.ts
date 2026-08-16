@@ -8,6 +8,7 @@ import type {
   HealthResponse,
   RunControlResponse,
   RunStarted,
+  RunSubmissionInput,
   SessionCreateInput,
   SessionListResponse,
   SessionMessagesResponse,
@@ -128,10 +129,17 @@ export function createHermesApi(options: HermesApiOptions) {
       return requestJson<unknown>("/v1/models");
     },
 
-    startRun(input: { input: string; sessionId?: string }): Promise<RunStarted> {
-      const body: Record<string, string> = { input: input.input };
+    startRun(input: RunSubmissionInput): Promise<RunStarted> {
+      const body: {
+        input: RunSubmissionInput["input"];
+        session_id?: string;
+        attachment_ids?: string[];
+      } = { input: input.input };
       if (input.sessionId) {
         body.session_id = input.sessionId;
+      }
+      if (input.attachmentIds?.length) {
+        body.attachment_ids = input.attachmentIds;
       }
 
       return requestJson<{ run_id: string; status: string }>("/v1/runs", {

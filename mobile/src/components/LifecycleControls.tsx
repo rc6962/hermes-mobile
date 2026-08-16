@@ -7,11 +7,11 @@ interface LifecycleControlsProps {
 }
 
 const controls: Array<{ action: LifecycleAction; label: string }> = [
-  { action: "start", label: "Start Hermes" },
-  { action: "stop", label: "Stop Hermes" },
-  { action: "restart", label: "Restart Hermes" },
+  { action: "start", label: "Start Balls" },
+  { action: "stop", label: "Stop Balls" },
+  { action: "restart", label: "Restart Balls" },
   { action: "doctor", label: "Run doctor" },
-  { action: "update", label: "Update Hermes" },
+  { action: "update", label: "Update Balls" },
 ];
 
 function actionNoun(action: LifecycleAction): string {

@@ -38,6 +38,27 @@ describe("fake Hermes server fixture", () => {
     ]);
   });
 
+  it("advertises and accepts an attachment-capable run contract", async () => {
+    const api = createHermesApi({ baseUrl: server.url, apiKey: "fixture-key" });
+
+    await expect(api.capabilities()).resolves.toMatchObject({
+      features: {
+        inline_image_input: true,
+        local_document_ingestion: true,
+      },
+    });
+
+    await expect(
+      api.startRun({
+        input: [
+          { type: "text", text: "Review the selected items" },
+          { type: "image_url", image_url: { url: "data:image/jpeg;base64,AA==" } },
+        ],
+        attachmentIds: ["att_fixture_pdf_1"],
+      }),
+    ).resolves.toMatchObject({ status: "started" });
+  });
+
   it("exercises approval and stop responses", async () => {
     const api = createHermesApi({ baseUrl: server.url, apiKey: "fixture-key" });
     const approvalRun = await api.startRun({ input: "approval" });

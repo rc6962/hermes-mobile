@@ -118,6 +118,18 @@ export function createFakeHermesServer(options: FakeHermesServerOptions = {}): F
           run_stop: true,
           run_approval: true,
           session_list: true,
+          inline_image_input: true,
+          local_document_ingestion: true,
+        },
+        attachments: {
+          image_types: ["image/jpeg", "image/png"],
+          document_types: [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          ],
+          max_file_bytes: 10 * 1024 * 1024,
+          max_document_text_chars: 100_000,
         },
       });
       return;

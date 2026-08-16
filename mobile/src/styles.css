@@ -47,7 +47,7 @@ button:disabled {
   width: min(100%, 52rem);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 1.25rem clamp(1rem, 4vw, 2rem) 2rem;
+  padding: 1.25rem clamp(1rem, 4vw, 2rem) calc(2rem + env(safe-area-inset-bottom));
 }
 
 .app-header {
@@ -226,7 +226,8 @@ h2 {
 
 .app-content {
   display: grid;
-  min-height: calc(100vh - 7rem);
+  min-height: 0;
+  height: min(68rem, calc(100dvh - 11rem));
   grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr);
   gap: 1rem;
 }
@@ -332,13 +333,16 @@ h2 {
 
 .chat-view {
   display: grid;
-  min-height: calc(100vh - 7rem);
+  min-height: 0;
+  height: 100%;
   grid-template-rows: 1fr auto;
   gap: 1rem;
+  overflow: hidden;
 }
 
 .chat-transcript {
   display: flex;
+  min-height: 0;
   flex-direction: column;
   gap: 0.85rem;
   overflow-y: auto;
@@ -440,10 +444,13 @@ h2 {
 .composer {
   display: grid;
   gap: 0.65rem;
+  position: relative;
+  z-index: 2;
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 1.1rem;
   padding: 0.8rem;
   background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(18px);
   box-shadow: 0 1rem 3rem rgba(2, 6, 23, 0.3);
 }
 
@@ -454,6 +461,31 @@ h2 {
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
+
+.composer .composer__add {
+  position: relative;
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  overflow: visible;
+  clip: auto;
+  place-items: center;
+  border-radius: 0.75rem;
+  color: #dbeafe;
+  background: rgba(30, 64, 175, 0.72);
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.composer__add input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.composer__attachments { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.composer__attachments li { display: flex; align-items: center; justify-content: space-between; gap: .6rem; border: 1px solid rgba(147,197,253,.18); border-radius: .7rem; padding: .45rem .55rem; }
+.composer__attachments li > span { display: grid; min-width: 0; gap: .1rem; }
+.composer__attachments strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; }
+.composer__attachments small { color: #94a3b8; font-size: .66rem; }
+.composer__attachments button { padding: .35rem .5rem; color: #fecaca; background: rgba(127,29,29,.55); font-size: .68rem; }
+.composer__attachment-error { margin: 0; color: #fecaca; font-size: .75rem; line-height: 1.35; }
 
 .composer textarea {
   resize: vertical;
@@ -569,6 +601,74 @@ h2 {
   font-size: 0.8rem;
 }
 
+.bridge-status-card {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(15, 23, 42, 0.78);
+}
+
+.bridge-status-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bridge-status-card__header .eyebrow {
+  margin-bottom: 0.25rem;
+  font-size: 0.58rem;
+}
+
+.bridge-status-card__header h2 {
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
+.bridge-status-card__state {
+  color: #93c5fd;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.bridge-status-card > p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.bridge-status-card__error {
+  color: #fecaca !important;
+}
+
+.bridge-status-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bridge-status-card__actions button {
+  padding: 0.5rem 0.7rem;
+  font-size: 0.76rem;
+}
+
+.bridge-status-card__refresh {
+  color: #bfdbfe;
+  background: rgba(30, 41, 59, 0.86);
+}
+
+@media (max-width: 520px) {
+  .bridge-status-card__header {
+    display: grid;
+    gap: 0.35rem;
+  }
+}
+
 @media (max-width: 520px) {
   .app-header {
     align-items: center;
@@ -585,14 +685,114 @@ h2 {
 
 @media (max-width: 700px) {
   .app-content {
+    height: calc(100dvh - 15rem);
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0.65rem;
   }
 
   .session-drawer {
     order: 0;
+    padding: 0.6rem;
+  }
+
+  .bridge-status-card {
+    gap: 0.45rem;
+    margin-bottom: 0.65rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .bridge-status-card__header .eyebrow {
+    margin-bottom: 0.15rem;
+  }
+
+  .bridge-status-card__header h2 {
+    font-size: 0.9rem;
+  }
+
+  .bridge-status-card > p {
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .bridge-status-card__actions {
+    gap: 0.35rem;
+  }
+
+  .bridge-status-card__actions button {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.68rem;
   }
 
   .chat-view {
-    min-height: calc(100vh - 15rem);
+    min-height: 0;
+    gap: 0.65rem;
+  }
+
+  .session-drawer__list {
+    max-height: 25dvh;
+  }
+
+  .chat-transcript {
+    gap: 0.65rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .message-bubble {
+    max-width: 96%;
+    border-radius: 0.9rem;
+    padding: 0.7rem 0.78rem;
+    line-height: 1.48;
+  }
+
+  .composer {
+    position: sticky;
+    bottom: 0.65rem;
+    border-radius: 0.95rem;
+    padding: 0.65rem 0.65rem 3.2rem;
+  }
+
+  .composer textarea {
+    max-height: 8rem;
+    resize: none;
   }
 }
+
+:root[data-theme="soft-haven"],
+:root[data-theme="soft-haven"] body { color: #202844; background: #f5f7fc; }
+:root[data-theme="soft-haven"] body { background: radial-gradient(circle at top right, rgba(122, 134, 214, 0.16), transparent 35rem), #f5f7fc; }
+:root[data-theme="gentle-command"],
+:root[data-theme="gentle-command"] body { color: #e5e7eb; background: #0b1120; }
+
+.app-shell[data-theme="soft-haven"] { --settings-surface:#fff; --settings-panel:#f8f9ff; --settings-ink:#202844; --settings-muted:#6f7892; --settings-line:#dfe5f2; --settings-accent:#5268d8; color:#202844; }
+.app-shell[data-theme="gentle-command"] { --settings-surface:#101c33; --settings-panel:#0c172b; --settings-ink:#eaf0ff; --settings-muted:#91a2c4; --settings-line:#263e66; --settings-accent:#5b89ec; }
+.app-header__settings { padding:.4rem .65rem; font-size:.74rem; }
+.app-shell[data-theme="soft-haven"] .app-header__settings { color:#4d61bf; background:#eef1ff; }
+.app-shell[data-theme="gentle-command"] .app-header__settings { color:#c7d7ff; background:#172848; }
+.app-shell[data-theme="soft-haven"] .eyebrow,.app-shell[data-theme="soft-haven"] .connection-status,.app-shell[data-theme="soft-haven"] .run-status,.app-shell[data-theme="soft-haven"] .run-activity summary { color:#5268d8; }
+.app-shell[data-theme="soft-haven"] .connection-status--online,.app-shell[data-theme="soft-haven"] .lifecycle-controls__status { color:#3f8b71 !important; }
+.app-shell[data-theme="soft-haven"] .app-header__forget,.app-shell[data-theme="soft-haven"] .connection-card,.app-shell[data-theme="soft-haven"] .lifecycle-controls,.app-shell[data-theme="soft-haven"] .session-drawer,.app-shell[data-theme="soft-haven"] .composer,.app-shell[data-theme="soft-haven"] .run-activity,.app-shell[data-theme="soft-haven"] .bridge-status-card,.app-shell[data-theme="soft-haven"] .message-bubble--assistant { color:#2f3959; border-color:#dfe5f2; background:#fff; box-shadow:0 1rem 3rem rgba(76,95,152,.1); }
+.app-shell[data-theme="soft-haven"] .connection-card p,.app-shell[data-theme="soft-haven"] .bridge-status-card > p,.app-shell[data-theme="soft-haven"] .chat-empty-state,.app-shell[data-theme="soft-haven"] .chat-empty-state p,.app-shell[data-theme="soft-haven"] .muted,.app-shell[data-theme="soft-haven"] .session-drawer__current,.app-shell[data-theme="soft-haven"] .session-drawer__item small,.app-shell[data-theme="soft-haven"] .run-activity__reasoning { color:#6f7892; }
+.app-shell[data-theme="soft-haven"] .chat-empty-state h2,.app-shell[data-theme="soft-haven"] .session-drawer__header h2,.app-shell[data-theme="soft-haven"] .lifecycle-controls h3 { color:#202844; }
+.app-shell[data-theme="soft-haven"] .chat-empty-state__icon,.app-shell[data-theme="soft-haven"] .session-drawer__toggle,.app-shell[data-theme="soft-haven"] .session-drawer__item,.app-shell[data-theme="soft-haven"] .bridge-status-card__refresh { color:#4557b8; border-color:#dfe5f2; background:#f6f7ff; }
+.app-shell[data-theme="soft-haven"] .session-drawer__item--selected,.app-shell[data-theme="soft-haven"] .message-bubble--user { color:#fff; background:#5268d8; }
+.app-shell[data-theme="soft-haven"] .pairing-form label,.app-shell[data-theme="soft-haven"] .composer textarea,.app-shell[data-theme="soft-haven"] .pairing-form input { color:#202844; }
+.app-shell[data-theme="soft-haven"] .pairing-form input,.app-shell[data-theme="soft-haven"] .composer textarea { border-color:#dfe5f2; background:#fff; }
+.app-shell[data-theme="soft-haven"] .composer textarea::placeholder { color:#8c96ae; }
+
+.presentation-settings__backdrop { position:fixed; z-index:20; inset:0; display:grid; justify-items:end; padding:1rem; background:rgba(8,16,34,.42); }
+.presentation-settings { width:min(26rem,100%); max-height:100%; overflow-y:auto; border:1px solid var(--settings-line); border-radius:1.25rem; padding:1.1rem; color:var(--settings-ink); background:var(--settings-surface); box-shadow:0 1.5rem 4rem rgba(2,6,23,.35); }
+.presentation-settings__header,.presentation-settings__row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.presentation-settings__header h2,.presentation-settings__section h3 { margin:0; color:var(--settings-ink); }
+.presentation-settings__close { padding:.4rem .6rem; color:var(--settings-muted); background:var(--settings-panel); font-size:.75rem; }
+.presentation-settings__section { border-top:1px solid var(--settings-line); margin-top:1rem; padding-top:1rem; }
+.presentation-settings__section p { margin:.4rem 0 0; color:var(--settings-muted); font-size:.82rem; line-height:1.45; }
+.presentation-settings__themes { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; margin-top:.85rem; }
+.presentation-settings__themes button { padding:.65rem .55rem; color:var(--settings-ink); border:1px solid var(--settings-line); background:var(--settings-panel); font-size:.78rem; }
+.presentation-settings__themes button.is-selected { color:#fff; border-color:var(--settings-accent); background:var(--settings-accent); }
+.presentation-settings__switch { flex:0 0 auto; width:2.7rem; height:1.5rem; padding:.15rem; border-radius:99px; background:var(--settings-line); }
+.presentation-settings__switch span { display:block; width:1.2rem; height:1.2rem; border-radius:50%; background:var(--settings-surface); transition:transform 160ms ease; }
+.presentation-settings__switch.is-on { background:var(--settings-accent); }
+.presentation-settings__switch.is-on span { transform:translateX(1.2rem); }
+.presentation-settings__coming-soon { border-radius:.8rem; padding:.8rem; background:var(--settings-panel); }
+@media (max-width:520px) { .presentation-settings__backdrop { padding:0; } .presentation-settings { width:100%; min-height:100%; border-radius:0; } }

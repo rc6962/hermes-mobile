@@ -107,6 +107,42 @@ describe("HermesApi", () => {
     });
   });
 
+  it("creates a run with inline image content and opaque document attachment IDs", async () => {
+    const calls: RecordedCall[] = [];
+    const api = createHermesApi({
+      baseUrl: "http://127.0.0.1:8642",
+      apiKey: "test-api-key",
+      fetchImpl: async (input, init) => {
+        calls.push({ url: String(input), init });
+        return jsonResponse({ run_id: "run-attachment", status: "started" }, 202);
+      },
+    });
+
+    await api.startRun({
+      input: [
+        { type: "text", text: "Summarize these attachments" },
+        {
+          type: "image_url",
+          image_url: { url: "data:image/png;base64,AA==", detail: "auto" },
+        },
+      ],
+      attachmentIds: ["att_local_document_1"],
+      sessionId: "session-1",
+    });
+
+    expect(JSON.parse(String(calls[0].init?.body))).toEqual({
+      input: [
+        { type: "text", text: "Summarize these attachments" },
+        {
+          type: "image_url",
+          image_url: { url: "data:image/png;base64,AA==", detail: "auto" },
+        },
+      ],
+      attachment_ids: ["att_local_document_1"],
+      session_id: "session-1",
+    });
+  });
+
   it("streams structured run events and tolerates keepalives", async () => {
     const events: unknown[] = [];
     const calls: RecordedCall[] = [];

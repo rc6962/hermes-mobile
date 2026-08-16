@@ -6,14 +6,14 @@ apply plugin: 'com.android.application'
 buildDir = file("../../.android-build/app")
 
 android {
-    namespace = "com.rickcain.hermesmobile"
+    namespace = "com.epictechs.balls"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.rickcain.hermesmobile"
+        applicationId "com.epictechs.balls"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "0.2.7"
+        versionCode 10
+        versionName "0.2.10"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

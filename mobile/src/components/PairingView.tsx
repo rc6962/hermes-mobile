@@ -17,7 +17,7 @@ export function PairingView({ apiUrl, onPair }: PairingViewProps) {
     event.preventDefault();
     const apiKey = normalizeApiKey(value);
     if (!apiKey) {
-      setError("Enter the API server key from your Termux Hermes instance.");
+      setError("Enter the API server key from your Termux AI instance.");
       return;
     }
 
@@ -35,7 +35,7 @@ export function PairingView({ apiUrl, onPair }: PairingViewProps) {
 
   return (
     <section className="connection-card pairing-card">
-      <h2>Pair with Hermes</h2>
+      <h2>Pair with Balls</h2>
       <p>
         Enter the local API server key configured in Termux. The key is stored in Android Keystore
         and is never displayed after pairing.

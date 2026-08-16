@@ -13,11 +13,11 @@ describe("LifecycleControls", () => {
 
     render(<LifecycleControls onAction={onAction} />);
 
-    for (const label of ["Start Hermes", "Stop Hermes", "Restart Hermes", "Run doctor", "Update Hermes"]) {
+    for (const label of ["Start Balls", "Stop Balls", "Restart Balls", "Run doctor", "Update Balls"]) {
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
     }
 
-    await user.click(screen.getByRole("button", { name: "Start Hermes" }));
+    await user.click(screen.getByRole("button", { name: "Start Balls" }));
 
     expect(onAction).toHaveBeenCalledWith("start");
     expect(screen.getByRole("status")).toHaveTextContent("Start requested");

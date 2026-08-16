@@ -28,7 +28,7 @@ start_gateway() {
   fi
 
   rm -f "$PID_FILE"
-  nohup hermes gateway run --replace >>"$LOG_FILE" 2>&1 </dev/null &
+  nohup hermes gateway run >>"$LOG_FILE" 2>&1 </dev/null &
   printf '%s\n' "$!" > "$PID_FILE"
   printf 'Hermes gateway start requested (pid %s)\n' "$(read_pid)"
 }
