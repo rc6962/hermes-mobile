@@ -4,6 +4,10 @@ import userEvent from "@testing-library/user-event";
 
 import { RuntimeSettings } from "../RuntimeSettings";
 
+vi.mock("../../lib/provisioning", () => ({
+  provisionEpicCloud: vi.fn().mockResolvedValue({ provisioned: true }),
+}));
+
 vi.mock("../../lib/runtime/managed-runtime", () => ({
   getManagedRuntimeStatus: vi.fn().mockResolvedValue({ running: false }),
   startManagedRuntime: vi.fn().mockResolvedValue({ started: true }),
@@ -44,7 +48,7 @@ describe("RuntimeSettings", () => {
     await user.click(screen.getByRole("button", { name: /Download local model/ }));
     expect(await screen.findByRole("button", { name: "Start local engine" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Start local engine" }));
-    expect(await screen.findByText(/Local engine is running/)).toBeTruthy();
+    expect(await screen.findByText(/Local engine is running/, {}, { timeout: 8000 })).toBeTruthy();
   });
 
   it("saves valid provider JSON in the custom view", async () => {

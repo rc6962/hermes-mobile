@@ -12,6 +12,7 @@ import {
   stopManagedRuntime,
 } from "../lib/runtime/managed-runtime";
 import { CLOUD_ENDPOINT } from "../lib/podule-registry";
+import { provisionEpicCloud } from "../lib/provisioning";
 
 type ModelSource = "epic-cloud" | "on-device" | "custom";
 
@@ -109,6 +110,22 @@ export function RuntimeSettings() {
       const result = await hasLocalModel();
       const result2 = await startLocalModel(result.path);
       if (result2.ok) {
+        // Switch the engine to the on-device model.
+        const localConfig = JSON.stringify({
+          providers: {
+            ballsLocal: {
+              api: `http://127.0.0.1:${result2.port ?? 8080}/v1`,
+              api_key: "sk-local",
+              model: "qwen3-0.6b",
+            },
+          },
+        });
+        const stored = await setManagedProviderConfig(localConfig);
+        if (stored.stored) {
+          await stopManagedRuntime();
+          await new Promise((resolve) => setTimeout(resolve, 4000));
+          await startManagedRuntime();
+        }
         setLocalState("running");
       } else {
         setActionError(result2.error ?? "The local engine would not start.");
@@ -127,6 +144,29 @@ export function RuntimeSettings() {
       setLocalState("stopped");
     } catch (error: unknown) {
       setActionError(error instanceof Error ? error.message : "The local engine would not stop.");
+    }
+  };
+
+  const handleSourceSwitch = async (source: ModelSource) => {
+    setModelSource(source);
+    if (source === "epic-cloud") {
+      // Switch back to the cloud: re-provision + restart the engine.
+      setActionError(undefined);
+      setLocalBusy(true);
+      try {
+        const provisioned = await provisionEpicCloud();
+        if (provisioned.provisioned) {
+          await stopManagedRuntime();
+          await new Promise((resolve) => setTimeout(resolve, 4000));
+          await startManagedRuntime();
+        } else {
+          setActionError("Balls could not reach Epic's cloud — try again in a minute.");
+        }
+      } catch (error: unknown) {
+        setActionError(error instanceof Error ? error.message : "Balls could not reach Epic's cloud.");
+      } finally {
+        setLocalBusy(false);
+      }
     }
   };
 
@@ -196,7 +236,7 @@ export function RuntimeSettings() {
               type="button"
               aria-pressed={modelSource === "epic-cloud"}
               className={modelSource === "epic-cloud" ? "is-selected" : undefined}
-              onClick={() => setModelSource("epic-cloud")}
+              onClick={() => void handleSourceSwitch("epic-cloud")}
             >
               Epic Cloud
             </button>
@@ -204,7 +244,7 @@ export function RuntimeSettings() {
               type="button"
               aria-pressed={modelSource === "on-device"}
               className={modelSource === "on-device" ? "is-selected" : undefined}
-              onClick={() => setModelSource("on-device")}
+              onClick={() => void handleSourceSwitch("on-device")}
             >
               On this device
             </button>
