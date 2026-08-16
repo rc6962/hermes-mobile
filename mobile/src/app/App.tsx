@@ -5,6 +5,7 @@ import { BridgeStatusCard } from "../components/BridgeStatusCard";
 import { ChatView } from "../components/ChatView";
 import { PairingView } from "../components/PairingView";
 import { PresentationSettings } from "../components/PresentationSettings";
+import { VoiceTab } from "../components/VoiceTab";
 import { SessionDrawer } from "../components/SessionDrawer";
 import { apiKeyStore, type ApiKeyStore } from "../lib/credentials";
 import { createRuntimeClient } from "../lib/runtime/create-runtime-client";
@@ -73,6 +74,7 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   const [state, dispatch] = useReducer(appStateReducer, undefined, initialAppState);
   const [sessionId, setSessionId] = useState<string>();
   const [sessionMessages, setSessionMessages] = useState<ChatMessage[]>([]);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const [bridgeStatus, setBridgeStatus] = useState<AndroidBridgeStatus>();
   const [bridgeLoading, setBridgeLoading] = useState(false);
   const [bridgeError, setBridgeError] = useState<string>();
@@ -184,6 +186,13 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
             <span className="connection-status__dot" aria-hidden="true" />
             {statusLabel}
           </p>
+          <button
+            type="button"
+            className="app-header__voice"
+            onClick={() => setVoiceOpen((open) => !open)}
+          >
+            {voiceOpen ? "Chat" : "Voice"}
+          </button>
           <PresentationSettings preferences={presentationPreferences} onChange={updatePresentationPreferences} />
         </div>
       </header>
@@ -237,7 +246,13 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
         />
       ) : null}
 
-      {credentialsReady && apiKey && state.status === "online" ? (
+      {credentialsReady && apiKey && state.status === "online" && voiceOpen ? (
+        <div className="app-content">
+          <VoiceTab />
+        </div>
+      ) : null}
+
+      {credentialsReady && apiKey && state.status === "online" && !voiceOpen ? (
         <div className="app-content">
           <SessionDrawer
             api={api}
