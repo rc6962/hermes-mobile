@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 512" width="1240" height="512">
+  <defs>
+    <radialGradient id="sphere" cx="0.36" cy="0.26" r="0.9">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="0.14" stop-color="#e2e8f0"/>
+      <stop offset="0.38" stop-color="#93c5fd"/>
+      <stop offset="0.62" stop-color="#2563eb"/>
+      <stop offset="0.82" stop-color="#1e40af"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </radialGradient>
+    <radialGradient id="blueSheen" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="smile" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e2e8f0"/>
+      <stop offset="0.55" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="wordGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e2e8f0"/>
+      <stop offset="0.5" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="hard" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.5"/>
+    </filter>
+    <filter id="neon" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <!-- ================= SPHERE (native scale) ================= -->
+  <g transform="translate(30 40)">
+    <!-- entrance -->
+    <animate attributeName="opacity" from="0" to="1" begin="0.1s" dur="0.7s" fill="freeze"/>
+    <animateTransform attributeName="transform" type="scale" from="0.92" to="1" begin="0.1s" dur="0.7s" fill="freeze" additive="sum"/>
+
+    <!-- floor shadow -->
+    <ellipse cx="256" cy="452" rx="150" ry="16" fill="#000000" opacity="0.55" filter="url(#soft)"/>
+
+    <!-- breathing sphere -->
+    <g style="transform-origin:256px 240px">
+      <animateTransform attributeName="transform" type="scale" values="1;1.012;1" keyTimes="0;0.5;1" dur="3.4s" repeatCount="indefinite"/>
+      <circle cx="256" cy="240" r="196" fill="url(#sphere)"/>
+      <ellipse cx="368" cy="196" rx="104" ry="150" fill="url(#blueSheen)" filter="url(#soft)"/>
+      <ellipse cx="198" cy="142" rx="72" ry="34" fill="#ffffff" opacity="0.85" filter="url(#hard)" transform="rotate(-26 198 142)"/>
+
+      <!-- sweeping sheen -->
+      <ellipse cx="90" cy="200" rx="46" ry="130" fill="#ffffff" opacity="0.22" filter="url(#soft)" transform="rotate(18 90 200)">
+        <animate attributeName="cx" values="70;430" dur="4.6s" repeatCount="indefinite"/>
+      </ellipse>
+
+      <!-- sly face -->
+      <path d="M 162 214 Q 200 196 238 226 Q 200 246 162 214 Z" fill="#05060d" stroke="#cbd5e1" stroke-width="5" stroke-linejoin="round"/>
+      <circle cx="188" cy="214" r="5" fill="#ffffff" opacity="0.9"/>
+      <!-- right eye (winks) -->
+      <g style="transform-origin:312px 220px">
+        <animateTransform attributeName="transform" type="scale" values="1 1;1 0.07;1 1" keyTimes="0;0.5;1" dur="0.5s" begin="1.8s" repeatCount="2"/>
+        <path d="M 274 226 Q 312 196 350 214 Q 312 246 274 226 Z" fill="#05060d" stroke="#38bdf8" stroke-width="5" stroke-linejoin="round"/>
+        <circle cx="300" cy="214" r="5" fill="#ffffff" opacity="0.9"/>
+      </g>
+      <path d="M 196 304 Q 256 324 314 296" fill="none" stroke="url(#smile)" stroke-width="6" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ================= WORDMARK ================= -->
+  <g transform="translate(470 96)">
+    <animate attributeName="opacity" from="0" to="1" begin="0.35s" dur="0.7s" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" values="0 26;0 0" begin="0.35s" dur="0.7s" fill="freeze" additive="sum"/>
+
+    <!-- neon glow layer (pulsing) -->
+    <text x="0" y="258" font-family="'Arial Black','Segoe UI Black',Impact,sans-serif" font-weight="900" font-size="188" letter-spacing="10"
+          fill="none" stroke="#60a5fa" stroke-width="10" filter="url(#neon)">
+      <animate attributeName="opacity" values="0.32;0.7;0.32" keyTimes="0;0.5;1" dur="2.8s" begin="1.2s" repeatCount="indefinite"/>
+      BALLS
+    </text>
+    <!-- metallic gradient fill -->
+    <text x="0" y="258" font-family="'Arial Black','Segoe UI Black',Impact,sans-serif" font-weight="900" font-size="188" letter-spacing="10"
+          fill="url(#wordGrad)">BALLS</text>
+    <!-- top bevel highlight -->
+    <text x="0" y="256" font-family="'Arial Black','Segoe UI Black',Impact,sans-serif" font-weight="900" font-size="188" letter-spacing="10"
+          fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.55">BALLS</text>
+    <!-- subline -->
+    <text x="6" y="320" font-family="'Segoe UI',Arial,sans-serif" font-weight="600" font-size="26" letter-spacing="12" fill="#64748b">
+      <animate attributeName="opacity" from="0" to="1" begin="1s" dur="0.8s" fill="freeze"/>
+      AN EPIC TECHNOLOGIES PRODUCT
+    </text>
+  </g>
+</svg>

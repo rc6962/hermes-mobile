@@ -22,6 +22,20 @@ export interface AndroidBridgeAdapter {
   openAccessibilitySettings(): Promise<void>;
 }
 
+/**
+ * Fetch the bounded read-only accessibility snapshot from the in-process
+ * loopback server (7071). Returns the raw tree JSON; throws if the bridge
+ * is not connected or the snapshot is unavailable.
+ */
+export async function readScreenSnapshot(fresh = false): Promise<unknown> {
+  const url = `http://127.0.0.1:7071/v1/accessibility/snapshot${fresh ? "?fresh=1" : ""}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`screen snapshot unavailable (${response.status})`);
+  }
+  return (await response.json()) as unknown;
+}
+
 interface NativeAndroidBridgePlugin {
   getStatus(): Promise<unknown>;
   openAccessibilitySettings(): Promise<{ accepted: boolean }>;

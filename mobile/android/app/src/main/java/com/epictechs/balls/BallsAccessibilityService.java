@@ -3,6 +3,7 @@ package com.epictechs.balls;
 import android.accessibilityservice.AccessibilityService;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -42,6 +43,7 @@ public class BallsAccessibilityService extends AccessibilityService {
     protected void onServiceConnected() {
         super.onServiceConnected();
         instance = this;
+        BallsAccessibilityServer.start();
     }
 
     @Override
@@ -64,6 +66,7 @@ public class BallsAccessibilityService extends AccessibilityService {
             instance = null;
         }
         cachedSnapshot = null;
+        BallsAccessibilityServer.stop();
         super.onDestroy();
     }
 

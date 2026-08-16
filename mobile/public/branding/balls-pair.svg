@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 480" width="660" height="480">
+  <defs>
+    <radialGradient id="sphere" cx="0.36" cy="0.26" r="0.9">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="0.14" stop-color="#e2e8f0"/>
+      <stop offset="0.38" stop-color="#93c5fd"/>
+      <stop offset="0.62" stop-color="#2563eb"/>
+      <stop offset="0.82" stop-color="#1e40af"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </radialGradient>
+    <radialGradient id="blueSheen" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="smile" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e2e8f0"/>
+      <stop offset="0.55" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <filter id="hard" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+  </defs>
+
+  <!-- floor shadows -->
+  <ellipse cx="215" cy="412" rx="110" ry="12" fill="#000000" opacity="0.5" filter="url(#soft)"/>
+  <ellipse cx="445" cy="414" rx="92" ry="10" fill="#000000" opacity="0.5" filter="url(#soft)"/>
+
+  <!-- ===== LEFT BALL (sly, bigger) ===== -->
+  <g>
+    <circle cx="215" cy="250" r="150" fill="url(#sphere)"/>
+    <ellipse cx="298" cy="214" rx="72" ry="100" fill="url(#blueSheen)" filter="url(#soft)"/>
+    <ellipse cx="168" cy="170" rx="52" ry="26" fill="#ffffff" opacity="0.85" filter="url(#hard)" transform="rotate(-26 168 170)"/>
+    <!-- face (scaled from 512-space, r150/196 = 0.765) -->
+    <g transform="translate(19 66) scale(0.765)">
+      <path d="M 162 214 Q 200 196 238 226 Q 200 246 162 214 Z" fill="#05060d" stroke="#cbd5e1" stroke-width="6" stroke-linejoin="round"/>
+      <circle cx="188" cy="214" r="6" fill="#ffffff" opacity="0.9"/>
+      <path d="M 274 226 Q 312 196 350 214 Q 312 246 274 226 Z" fill="#05060d" stroke="#38bdf8" stroke-width="6" stroke-linejoin="round"/>
+      <circle cx="300" cy="214" r="6" fill="#ffffff" opacity="0.9"/>
+      <path d="M 196 304 Q 256 324 314 296" fill="none" stroke="url(#smile)" stroke-width="7" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ===== RIGHT BALL (smaller, hangs lower, the wink) ===== -->
+  <g>
+    <circle cx="445" cy="262" r="128" fill="url(#sphere)"/>
+    <ellipse cx="501" cy="229" rx="61" ry="85" fill="url(#blueSheen)" filter="url(#soft)"/>
+    <ellipse cx="374" cy="188" rx="44" ry="22" fill="#ffffff" opacity="0.85" filter="url(#hard)" transform="rotate(-26 374 188)"/>
+    <!-- face (r128/196 = 0.653) -->
+    <g transform="translate(278 105) scale(0.653)">
+      <path d="M 162 214 Q 200 196 238 226 Q 200 246 162 214 Z" fill="#05060d" stroke="#cbd5e1" stroke-width="6.5" stroke-linejoin="round"/>
+      <circle cx="188" cy="214" r="6.5" fill="#ffffff" opacity="0.9"/>
+      <!-- winking lid -->
+      <path d="M 274 228 Q 312 210 350 228" fill="none" stroke="#38bdf8" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M 196 304 Q 256 324 314 296" fill="none" stroke="url(#smile)" stroke-width="7.5" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

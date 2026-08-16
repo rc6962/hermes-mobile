@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   disabledAndroidBridgeStatus,
   normalizeAndroidBridgeStatus,
+  readScreenSnapshot,
 } from "../android-bridge";
 
 describe("Android bridge status adapter", () => {
@@ -83,5 +84,23 @@ describe("Android bridge status adapter", () => {
         "screen.capture",
       ],
     });
+  });
+});
+
+
+describe("readScreenSnapshot", () => {
+  it("fetches the loopback snapshot and returns the tree JSON", async () => {
+    const fakeTree = { nodes: [{ id: "1", text: "Hi" }] };
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(fakeTree), { status: 200 })));
+    const tree = await readScreenSnapshot(true);
+    expect(tree).toEqual(fakeTree);
+    const url = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
+    expect(url).toContain("127.0.0.1:7071");
+    expect(url).toContain("fresh=1");
+  });
+
+  it("throws when the snapshot is unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 503 })));
+    await expect(readScreenSnapshot()).rejects.toThrow(/unavailable/);
   });
 });
