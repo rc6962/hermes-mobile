@@ -53,6 +53,10 @@ RuntimeClient (TS)                 mobile/src/lib/runtime/RuntimeClient.ts
 
 The Rust-native plan in the earlier version of this file is withdrawn as the primary path. It may return later as a micro-optimization for the protocol surface only if measurements demand it.
 
+## Dissent recorded (Terra, 2026-08-16)
+
+Consulting Terra on the revised direction produced a dissent: Terra recommends a native Rust core over Chaquopy embedding, citing wheel brittleness, APK bloat, and background limits. The dissent was evaluated and overruled on requirement grounds: a native core cannot deliver full Hermes parity + continuous updates (the owner's explicit requirement); it is a permanent reimplementation treadmill. The only self-contained path that runs *real* Hermes is embedding it. Feasibility evidence favoring Chaquopy: Hermes already runs on the S24 Ultra today via Termux (same ARM64/bionic/pip environment). Terra's valid points were adopted instead: hybrid update channel (Play default + opt-in signed in-app Hermes updates with rollback), arm64-first ABI splits, foreground-only execution, thin IPC surface.
+
 ## Open decisions for Rick
 
 - Arm64-only first release vs. full ABI coverage (size vs. device reach).
