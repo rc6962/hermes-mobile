@@ -18,7 +18,8 @@
 #
 # Key resolution order:
 #   1. $ATTACHMENT_ADAPTER_KEY (explicit override)
-#   2. hermes config get platforms.api_server.extra.key  (gateway pairing key)
+#   2. API_SERVER_KEY from $HERMES_HOME/.env   (gateway pairing key, Termux default)
+#   3. hermes config get platforms.api_server.extra.key
 set -eu
 
 umask 077
