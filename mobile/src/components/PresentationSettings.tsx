@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { RuntimeSettings } from "./RuntimeSettings";
+import { GmailAccountsSettings } from "./GmailAccountsSettings";
 
 import type { PresentationPreferences } from "../lib/presentation-preferences";
 
@@ -100,6 +101,9 @@ export function PresentationSettings({ preferences, onChange }: PresentationSett
             </section>
             <section className="presentation-settings__section">
               <RuntimeSettings />
+            </section>
+            <section className="presentation-settings__section">
+              <GmailAccountsSettings />
             </section>
           </section>
         </div>

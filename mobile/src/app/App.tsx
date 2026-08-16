@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 
 import { appStateReducer, initialAppState } from "./app-state";
-import { BridgeStatusCard } from "../components/BridgeStatusCard";
 import { ChatView } from "../components/ChatView";
 import { PairingView } from "../components/PairingView";
 import { PresentationSettings } from "../components/PresentationSettings";
@@ -17,7 +16,7 @@ import {
 } from "../lib/runtime/managed-runtime";
 import { provisionEpicCloud } from "../lib/provisioning";
 import { createAttachmentAdapterClient } from "../lib/attachment-adapter-client";
-import { androidBridge, type AndroidBridgeAdapter, type AndroidBridgeStatus } from "../lib/android-bridge";
+import { androidBridge, type AndroidBridgeAdapter } from "../lib/android-bridge";
 import {
   loadPresentationPreferences,
   savePresentationPreferences,
@@ -81,12 +80,7 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
   const [sessionId, setSessionId] = useState<string>();
   const [sessionMessages, setSessionMessages] = useState<ChatMessage[]>([]);
   const [voiceOpen, setVoiceOpen] = useState(false);
-  const [bridgeStatus, setBridgeStatus] = useState<AndroidBridgeStatus>();
-  const [bridgeLoading, setBridgeLoading] = useState(false);
-  const [bridgeError, setBridgeError] = useState<string>();
-
-  useEffect(() => {
-    savePresentationPreferences(presentationPreferences);
+  useEffect(() => {    savePresentationPreferences(presentationPreferences);
     document.documentElement.dataset.theme = presentationPreferences.theme;
   }, [presentationPreferences]);
 
@@ -128,38 +122,6 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
     };
   }, [credentialsReady, apiKey, checkBackend]);
 
-
-  const refreshBridgeStatus = useCallback(async () => {
-    setBridgeLoading(true);
-    setBridgeError(undefined);
-    try {
-      setBridgeStatus(await bridgeAdapter.getStatus());
-    } catch (error) {
-      setBridgeError(safeErrorMessage(error));
-    } finally {
-      setBridgeLoading(false);
-    }
-  }, [bridgeAdapter]);
-
-  const openAccessibilitySettings = useCallback(async () => {
-    setBridgeError(undefined);
-    try {
-      await bridgeAdapter.openAccessibilitySettings();
-      await refreshBridgeStatus();
-    } catch (error) {
-      setBridgeError(safeErrorMessage(error));
-    }
-  }, [bridgeAdapter, refreshBridgeStatus]);
-
-  useEffect(() => {
-    if (credentialsReady && apiKey) {
-      void checkBackend();
-      void refreshBridgeStatus();
-    } else {
-      setBridgeStatus(undefined);
-      setBridgeError(undefined);
-    }
-  }, [apiKey, checkBackend, credentialsReady, refreshBridgeStatus]);
 
   // Consumer flow: opening the app starts the embedded engine (idempotent —
   // the native plugin guards double-start), then the health check above
@@ -261,16 +223,6 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
             Retry connection
           </button>
         </section>
-      ) : null}
-
-      {credentialsReady && apiKey ? (
-        <BridgeStatusCard
-          status={bridgeStatus}
-          loading={bridgeLoading}
-          error={bridgeError}
-          onRefresh={refreshBridgeStatus}
-          onOpenSettings={openAccessibilitySettings}
-        />
       ) : null}
 
       {credentialsReady && apiKey && state.status === "online" && voiceOpen ? (

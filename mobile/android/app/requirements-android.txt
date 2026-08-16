@@ -22,6 +22,12 @@
 uvicorn==0.41.0
 python-multipart==0.0.27
 
+# --- web search (DuckDuckGo, free, no API key) ---
+# duckduckgo_search REMOVED 2026-08-16: pulls primp/lxml (no Android wheels);
+# broke the Chaquopy pip resolution, blocking all APK builds. Web search is
+# not in the v1 chat path — re-add only when a vendored pure-Python ddgs
+# bundle exists, or pin to a version whose transitives resolve on Android.
+
 # --- pure-Python transitives of the vendored web stack (explicit pins) ---
 anyio>=4.0,<5
 idna>=2.8,<4

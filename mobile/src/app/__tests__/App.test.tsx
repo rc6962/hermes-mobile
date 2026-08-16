@@ -100,7 +100,7 @@ describe("App", () => {
     });
   });
 
-  it("shows bridge setup state and delegates the accessibility settings action", async () => {
+  it("does not surface the phone-control banner in the chat view", async () => {
     const user = userEvent.setup();
     const bridgeAdapter = createBridgeAdapter();
     vi.stubGlobal(
@@ -116,10 +116,10 @@ describe("App", () => {
 
     render(<App credentialStore={createStore("test-key")} bridgeAdapter={bridgeAdapter} />);
 
-    expect(await screen.findByRole("heading", { name: /phone bridge disabled/i })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /open accessibility settings/i }));
-
-    expect(bridgeAdapter.openAccessibilitySettings).toHaveBeenCalledOnce();
+    await screen.findByRole("heading", { name: /balls/i });
+    expect(
+      screen.queryByRole("heading", { name: /phone bridge disabled/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("sends a new message to the selected session", async () => {

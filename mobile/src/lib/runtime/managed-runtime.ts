@@ -71,6 +71,7 @@ export interface ManagedRuntimePlugin {
   stop(): Promise<{ stopped: boolean }>;
   status(): Promise<ManagedRuntimeStatus>;
   hasProviderConfig(): Promise<{ present: boolean }>;
+  requestMicPermission(): Promise<{ granted: boolean }>;
   setProviderConfig(options: { providerJson: string }): Promise<{ stored: boolean }>;
 }
 
@@ -121,6 +122,13 @@ export async function getManagedRuntimeStatus(): Promise<ManagedRuntimeStatus> {
   } catch (error) {
     return { running: false, error: error instanceof Error ? error.message : String(error) };
   }
+}
+
+/** Request the runtime RECORD_AUDIO permission (first mic use). */
+export async function requestMicPermission(): Promise<{ granted: boolean }> {
+  const result = await getPlugin().requestMicPermission();
+  const state = (result as { mic?: string }).mic;
+  return { granted: state === "granted" };
 }
 
 /** Whether a provider config is already stored (skips re-provisioning). */

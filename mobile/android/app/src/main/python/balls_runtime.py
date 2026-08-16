@@ -116,6 +116,10 @@ def _write_provider_config(home: Path, provider_json: str | None) -> None:
         "platforms:",
         "  api_server:",
         "    enabled: true",
+        # Gmail/email is enabled by the gateway itself via env overrides (
+        # _apply_env_overrides) when EMAIL_ADDRESS/EMAIL_PASSWORD/
+        # EMAIL_IMAP_HOST/EMAIL_SMTP_HOST are all set — those are wired in
+        # start_runtime() below, not emitted here.
         "display:",
         f"  personality: {_PERSONALITY!r}",
         # Full Hermes toolset — everything the engine can do, exposed in chat.
@@ -188,6 +192,7 @@ def start_runtime(
     port: int = DEFAULT_PORT,
     provider_json: str | None = None,
     model_name: str | None = None,
+    email_creds: dict | None = None,
 ) -> dict:
     """Start the embedded Hermes API server. Returns a status dict."""
     home = Path(hermes_home)
@@ -200,6 +205,28 @@ def start_runtime(
     os.environ["API_SERVER_PORT"] = str(port)
     if model_name:
         os.environ["API_SERVER_MODEL_NAME"] = model_name
+
+    # Gmail over IMAP/SMTP: the gateway's _apply_env_overrides auto-enables
+    # the email platform ONLY when all four of these are set. Wire them from
+    # the app-provided (secure-storage) creds when present; when absent the
+    # email platform stays off and the app is unchanged. The Kotlin side
+    # passes a Keystore-encrypted JSON string; accept either that or a dict.
+    creds = email_creds
+    if isinstance(creds, str):
+        try:
+            creds = json.loads(creds) if creds.strip() else None
+        except json.JSONDecodeError:
+            creds = None
+    if isinstance(creds, dict):
+        _addr = (creds.get("address") or "").strip()
+        _pw = (creds.get("password") or "").strip()
+        if _addr and _pw:
+            os.environ["EMAIL_ADDRESS"] = _addr
+            os.environ["EMAIL_PASSWORD"] = _pw
+            os.environ["EMAIL_IMAP_HOST"] = creds.get("imap_host") or "imap.gmail.com"
+            os.environ["EMAIL_SMTP_HOST"] = creds.get("smtp_host") or "smtp.gmail.com"
+            if creds.get("allowed_users"):
+                os.environ["EMAIL_ALLOWED_USERS"] = creds["allowed_users"]
 
     _write_provider_config(home, provider_json)
     _write_soul(home)

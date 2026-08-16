@@ -53,6 +53,14 @@ public class SecureCredentialsPlugin extends Plugin {
     private static final String EMBEDDED_CIPHERTEXT = "embedded_key_ciphertext";
     private static final String EMBEDDED_IV = "embedded_key_iv";
 
+    // Gmail IMAP/SMTP credentials (app password) for the email platform.
+    // Own prefs + own alias so it survives clearApiKey() and is never shown
+    // in the pairing UI. Stored as Keystore-encrypted JSON.
+    private static final String EMAIL_ALIAS = "BallsEmailCreds";
+    private static final String EMAIL_PREFS = "email_creds";
+    private static final String EMAIL_CIPHERTEXT = "email_creds_ciphertext";
+    private static final String EMAIL_IV = "email_creds_iv";
+
     private static final int GCM_TAG_BITS = 128;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -137,6 +145,78 @@ public class SecureCredentialsPlugin extends Plugin {
     /** Encrypt and store the provider-config JSON. */
     public static void writeProviderConfig(Context context, String providerJson) throws Exception {
         writeSecret(context, PROVIDER_PREFS, PROVIDER_CIPHERTEXT, PROVIDER_IV, PROVIDER_ALIAS, providerJson);
+    }
+
+    // --- Gmail IMAP/SMTP credentials (email platform) ---------------------
+
+    /** Stored Gmail-credentials JSON, or null when absent. */
+    public static String readEmailCreds(Context context) {
+        return readSecret(context, EMAIL_PREFS, EMAIL_CIPHERTEXT, EMAIL_IV, EMAIL_ALIAS);
+    }
+
+    /** Encrypt and store the Gmail-credentials JSON. */
+    public static void writeEmailCreds(Context context, String emailJson) throws Exception {
+        writeSecret(context, EMAIL_PREFS, EMAIL_CIPHERTEXT, EMAIL_IV, EMAIL_ALIAS, emailJson);
+    }
+
+    /** Clear the stored Gmail credentials (and its alias so the key rotates on next save). */
+    public static void clearEmailCreds(Context context) throws Exception {
+        context.getSharedPreferences(EMAIL_PREFS, Context.MODE_PRIVATE).edit().clear().apply();
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE);
+        keyStore.load(null);
+        if (keyStore.containsAlias(EMAIL_ALIAS)) {
+            keyStore.deleteEntry(EMAIL_ALIAS);
+        }
+    }
+
+    @PluginMethod
+    public void getEmailCreds(PluginCall call) {
+        try {
+            JSObject result = new JSObject();
+            String json = readEmailCreds(getContext());
+            if (json != null) {
+                result.put("emailCredsJson", json);
+            }
+            call.resolve(result);
+        } catch (Exception error) {
+            call.reject("Unable to read the stored email credentials");
+        }
+    }
+
+    @PluginMethod
+    public void setEmailCreds(PluginCall call) {
+        String address = call.getString("address");
+        String password = call.getString("password");
+        if (address == null || address.trim().isEmpty()
+                || password == null || password.trim().isEmpty()) {
+            call.reject("An email address and app password are required");
+            return;
+        }
+        try {
+            String imapHost = call.getString("imapHost");
+            String smtpHost = call.getString("smtpHost");
+            if (imapHost == null || imapHost.trim().isEmpty()) imapHost = "imap.gmail.com";
+            if (smtpHost == null || smtpHost.trim().isEmpty()) smtpHost = "smtp.gmail.com";
+            JSObject email = new JSObject();
+            email.put("address", address.trim());
+            email.put("password", password.trim());
+            email.put("imap_host", imapHost.trim());
+            email.put("smtp_host", smtpHost.trim());
+            writeEmailCreds(getContext(), email.toString());
+            call.resolve();
+        } catch (Exception error) {
+            call.reject("Unable to store the email credentials securely");
+        }
+    }
+
+    @PluginMethod
+    public void clearEmailCreds(PluginCall call) {
+        try {
+            clearEmailCreds(getContext());
+            call.resolve();
+        } catch (Exception error) {
+            call.reject("Unable to clear the stored email credentials");
+        }
     }
 
     /**

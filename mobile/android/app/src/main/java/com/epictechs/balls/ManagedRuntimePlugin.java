@@ -9,6 +9,7 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
@@ -19,7 +20,13 @@ import java.net.HttpURLConnection;
  * NativeHostService. Mirrors the TermuxLifecycle contract so the TS side
  * can treat "managed" and "termux" runtimes interchangeably.
  */
-@CapacitorPlugin(name = "ManagedRuntime")
+@CapacitorPlugin(
+        name = "ManagedRuntime",
+        permissions = {
+            @Permission(
+                    alias = "mic",
+                    strings = { android.Manifest.permission.RECORD_AUDIO })
+        })
 public class ManagedRuntimePlugin extends Plugin {
     private static final String TAG = "ManagedRuntime";
     private static final String HERMES_HOME_DIR = "balls-home";
@@ -189,6 +196,13 @@ public class ManagedRuntimePlugin extends Plugin {
                 call.reject("Model download failed: " + e.getMessage());
             }
         });
+    }
+
+    @PluginMethod
+    public void requestMicPermission(PluginCall call) {
+        // Requests the RECORD_AUDIO alias; the call resolves automatically
+        // with the permission state ({ mic: "granted" | ... }).
+        requestPermissions(call);
     }
 
     @PluginMethod

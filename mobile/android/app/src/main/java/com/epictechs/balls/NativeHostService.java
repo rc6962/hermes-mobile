@@ -132,7 +132,14 @@ public class NativeHostService extends Service {
             }
             Python py = Python.getInstance();
             pyModule = py.getModule("balls_runtime");
-            PyObject result = pyModule.callAttr("start_runtime", ballsHome, apiKey, DEFAULT_PORT, providerJson);
+            // Pass stored Gmail IMAP/SMTP creds (Keystore-encrypted JSON) to
+            // the runtime so it can enable the email platform; null when the
+            // user hasn't set any. The Python signature is
+            // start_runtime(home, key, port, provider_json, model_name=None,
+            // email_creds=None) — we pass null for the unused model_name.
+            String emailJson = SecureCredentialsPlugin.readEmailCreds(getApplicationContext());
+            PyObject result = pyModule.callAttr(
+                    "start_runtime", ballsHome, apiKey, DEFAULT_PORT, providerJson, null, emailJson);
             JSONObject status = parseResult(py, result);
             boolean ok = status.optBoolean("ok", false);
             sRunning = ok;

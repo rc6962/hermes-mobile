@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import type { PendingAttachment } from "../lib/attachments";
+import { requestMicPermission } from "../lib/runtime/managed-runtime";
 
 interface SpeechRecognitionAlternativeLike {
   transcript: string;
@@ -19,7 +20,7 @@ interface SpeechRecognitionLike {
   maxAlternatives: number;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
   onend: (() => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
   start(): void;
 }
 interface SpeechRecognitionCtorLike {
@@ -80,7 +81,25 @@ export function Composer({
       }
     };
     recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
+    recognition.onerror = (event: { error?: string }) => {
+      setListening(false);
+      // First mic use: the WebView is denied until the app's runtime
+      // RECORD_AUDIO permission is granted. Ask once, then retry.
+      if (event.error === "not-allowed") {
+        void (async () => {
+          const result = await requestMicPermission();
+          if (result.granted) {
+            const retry = new SR();
+            retry.lang = "en-US";
+            retry.interimResults = true;
+            retry.onresult = recognition.onresult;
+            retry.onend = () => setListening(false);
+            retry.start();
+            setListening(true);
+          }
+        })();
+      }
+    };
     recognition.start();
     setListening(true);
   };
@@ -177,7 +196,11 @@ export function Composer({
           >
             {listening ? "◉" : "🎙"}
           </button>
-          <button type="submit" disabled={busy || value.trim().length === 0 || !canSend}>
+          <button
+            type="submit"
+            className="composer__send"
+            disabled={busy || value.trim().length === 0 || !canSend}
+          >
             Send
           </button>
           {busy ? (
