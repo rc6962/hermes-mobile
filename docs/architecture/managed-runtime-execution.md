@@ -49,6 +49,28 @@ RuntimeClient (TS)                 mobile/src/lib/runtime/RuntimeClient.ts
 4. **Play policy on embedded runtimes** → transparent disclosures; data stays on-device; no background automation initially (foreground/user-initiated only).
 5. **Android-bridge parity between modes** → same plugin + protocol in both; regression test both paths.
 
+## Update flow (concrete, accepted 2026-08-16)
+
+The abstract W4 design is now concretized by the in-repo wheel store:
+
+```
+Hermes release (PyPI/GitHub) → OUR REPO (pin → rebuild → verify → sign) → Balls app
+```
+
+1. **Weekly check** (cron: Hermes update check, Mon 09:00): PyPI hermes-agent version
+   vs the vendored baseline; GitHub release deltas. Report = action item or no-op.
+2. **Processing pass** (on action item): mirror new hermes-agent source into
+   src/main/python/; re-pin requirements-android.txt from the new pyproject.toml;
+   rebuild changed Rust wheels (maturin pipeline: jiter, pydantic-core — see
+   android/scripts/build-android-wheels.sh); re-verify the documented Android
+   exclusions (pyyaml/ruamel.yaml/markupsafe/jinja2/openai = vendored pure-Python;
+   cryptography/psutil/Pillow = excluded as optional); sign manifest (versions +
+   sha256) with pinned_until.
+3. **Distribution**: default = new app build via Play; opt-in = signed in-app
+   runtime swap with health check + rollback to the previous signed bundle.
+4. **Ownership**: the repo is the gatekeeper — upstream can never break a phone;
+   the frontend (RuntimeClient seam) never changes across runtime updates.
+
 ## Superseded
 
 The Rust-native plan in the earlier version of this file is withdrawn as the primary path. It may return later as a micro-optimization for the protocol surface only if measurements demand it.

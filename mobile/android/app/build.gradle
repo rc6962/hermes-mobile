@@ -24,9 +24,16 @@ android {
         }
         python {
             // Embedded Python (Chaquopy 17): DSL is per product flavor.
-            // M1: interpreter only, no packages yet. M2 adds the pinned
-            // hermes-agent[web] requirement set.
-            buildPython "C:/Users/RickCain/AppData/Local/Python/pythoncore-3.11-64/python.exe"
+            // Target 3.11: hermes-agent requires >=3.11,<3.14 and the dev/
+            // Termux environment runs 3.11 (best parity ground truth).
+            version "3.11"
+            buildPython "C:/Users/RickCain/AppData/Local/Programs/Python/Python311/python.exe"
+            pip {
+                // jiter + openai are VENDORED in src/main/python/ (jiter:
+                // NDK-built abi3 .so; openai: pure-Python sdist) — the
+                // Chaquopy resolver never sees them.
+                install "-r", "requirements-android.txt"
+            }
         }
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -1,0 +1,76 @@
+# Balls managed runtime — embedded Hermes dependency set (spike M2).
+#
+# hermes-agent 0.19.0 source is VENDORED in src/main/python/ (sdist copy,
+# LICENSE retained). pip installs only the third-party dependencies here.
+#
+# Rules applied to the upstream pins (hermes-agent 0.19.0 pyproject):
+#   - uvicorn[standard] -> base uvicorn: the [standard] extra pulls uvloop,
+#     which has no Android wheel. The API server runs fine on asyncio.
+#   - fastapi/uvicorn/python-multipart core ranges -> the [web] extra exact
+#     pins (fastapi==0.133.1, uvicorn==0.41.0, python-multipart==0.0.27).
+#   - starlette==1.0.1 from the [web] extra.
+#   - win32-only deps skipped (tzdata, pywinpty, pywin32,
+#     concurrent-log-handler).
+#   - nemo-relay excluded upstream via its own Android marker.
+#   - Version pins mirror hermes-agent 0.19.0 (PyPI) core dependencies.
+
+# --- web runtime (uvicorn base only; no uvloop) ---
+# fastapi==0.133.1 + starlette==1.0.1: VENDORED at src/main/python/
+# (pure-Python; they pull pydantic which Chaquopy cannot resolve due to the
+# pydantic-core 0.0.1 stub — pydantic is also vendored).
+# uvicorn base (no [standard] — uvloop has no Android build).
+uvicorn==0.41.0
+python-multipart==0.0.27
+
+# --- pure-Python transitives of the vendored web stack (explicit pins) ---
+anyio>=4.0,<5
+idna>=2.8,<4
+sniffio>=1.1,<2
+typing-extensions>=4.12,<5
+annotated-types>=0.6.0
+typing-inspection>=0.4.0
+h11>=0.8,<1
+click>=7.0
+
+# --- hermes-agent core (pinned, mirrored from upstream) ---
+# openai==2.24.0: VENDORED pure-Python at src/main/python/openai/ (sdist).
+# jiter (openai's Rust dep): VENDORED at src/main/python/jiter/ (abi3 .so,
+# NDK-built via maturin — no Chaquopy wheel exists).
+certifi==2026.5.20
+python-dotenv==1.2.2
+fire==0.7.1
+httpx[socks]==0.28.1
+rich==14.3.3
+tenacity==9.1.4
+# pyyaml==6.0.3: no Android wheel in Chaquopy's repo; the pure-Python
+# fallback package is vendored at src/main/python/yaml/ (from the PyPI
+# sdist).
+# ruamel.yaml==0.18.17: VENDORED at src/main/python/ruamel/ (flat sdist;
+# clib speedup excluded — pure-Python fallback by design).
+requests==2.33.0
+# jinja2==3.1.6 + MarkupSafe (its C dep): VENDORED at src/main/python/
+# jinja2/ and markupsafe/ (both pure-Python sdists).
+# pydantic==2.13.4 + pydantic_core==2.46.4: VENDORED at src/main/python/
+# (pydantic = pure-Python sdist; pydantic_core = maturin-built Android
+# wheel, cp311-cp311-android_21_arm64_v8a, non-abi3 against the Chaquopy
+# libpython3.11.so — Chaquopy's index only has a 0.0.1 stub).
+prompt_toolkit==3.0.52
+croniter==6.0.0
+packaging==26.0
+Markdown==3.10.2
+# cryptography==46.0.7: no Android wheel (Rust build; Chaquopy cannot
+# sdist-build it). Used only by qqbot/weixin/wecom platform adapters and
+# one creative skill — none in the v1 chat path. PyJWT below is base-only
+# (HS256 is pure-Python; RS/ES/PS would need cryptography, later phase).
+PyJWT==2.13.0
+# psutil==7.2.2: no Android wheel (C build). All Hermes usages are lazy
+# imports inside functions (memory/process monitoring) that degrade
+# gracefully — confirmed across gateway/ and hermes_cli/.
+urllib3>=2.7.0,<3
+websockets==15.0.1
+pathspec==1.1.1
+# Pillow==12.2.0: no Android wheel (C build). All Hermes usages are lazy
+# guarded imports: image_routing transcodes non-standard formats only
+# (logs + returns None when missing); conversation_compression and pet/
+# features degrade; standard JPEG/PNG inline vision is unaffected.
+ptyprocess>=0.7.0,<1
