@@ -1,79 +1,61 @@
-# Managed Runtime — Multi-Model Execution Plan (Synthesis)
+# Managed Runtime — Execution Plan (Revised)
 
-- **Status:** accepted direction (multi-model comparison 2026-08-16)
-- **Models consulted:** GPT-5.6 Terra (thinking) · Kimi K3 (thinking) · GLM 5.2 (thinking) · Claude Sonnet 5 (thinking) — same brief, independent answers
-- **Supersedes:** "Option B = embedded Python bundle" as the *primary* packaging path in `managed-runtime.md`. Option B remains only as a fallback if the native path fails its spike.
+- **Status:** accepted direction (revised 2026-08-16 after product clarification)
+- **Product requirement (Rick):** the managed mode must be **powered by real Hermes** — all Hermes features, agents, tools, phone-system bridge access, and updateable whenever new Hermes agents ship. It is Hermes, called Balls, self-contained for everyday users.
 
-## Verdict (unanimous, 4/4 models)
+## Verdict (revised)
 
-**Embedded Python runtime is the wrong primary path. Use a Rust native core with a small JNI/FFI bridge behind a TS `RuntimeClient` interface.** Termux remains the advanced compatibility mode. All four models independently rejected Python-embedded and chose native Rust — the strongest possible triangulation for this decision.
+**Embed the real Hermes runtime inside the app via Chaquopy (embedded Python for Android).** Not a Rust reimplementation.
 
-Key numbers (consensus range):
+The earlier 4-model comparison (Terra · Kimi · GLM · Sonnet) answered a different question — "Hermes-*compatible* runtime" — and correctly chose Rust for a from-scratch partial clone. A clone cannot satisfy the actual product requirement: full parity with Hermes and continuous updates as new Hermes agents ship. A reimplementation is a permanent catch-up treadmill; embedding the real runtime is the only path to parity + updateability.
 
-| Metric | Terra | Kimi | GLM | Sonnet | Working target |
-|---|---|---|---|---|---|
-| Native core size | 4–8 MB | ~small/stripped | 2–6 MB | — | **2–8 MB** |
-| APK delta | ≤12–20 MB | ≤60 MB (loose) | +2–6 MB | ≤+20% (unrealistic) | **≤15 MB** |
-| Cold start (S24) | ≤2.5 s | ≤2.5 s | ≤4 s | ≤6 s | **≤3 s** |
-| Peak memory | ≤180 MB | ≤150 MB | ≤120 MB | ≤180 MB | **≤150 MB** |
-| Abort thresholds | — | >3 s / >80 MB / >180 MB | >6 s / >200 MB | — | **>6 s or >200 MB → abort & re-evaluate** |
-
-## Synthesized architecture
+## Architecture
 
 ```
-React / Capacitor UI
+React / Capacitor UI (Balls)
         │
         ▼
-RuntimeClient (TS interface)          mobile/src/lib/runtime/RuntimeClient.ts
-        │
-        ├── TermuxRuntimeClient        existing HermesApi over 127.0.0.1:8642 (compat mode)
-        └── ManagedRuntimeClient       → RuntimeBridge (Capacitor plugin) → JNI → Rust core
-                                                                              │
-                                        loopback-only HTTP/SSE, signed versioned bundle,
-                                        Keystore-backed encrypted profile (AES-GCM, device-bound)
+RuntimeClient (TS)                 mobile/src/lib/runtime/RuntimeClient.ts
+        ├── TermuxRuntimeClient     existing Hermes in Termux (advanced mode)
+        └── ManagedRuntimeClient    → Capacitor RuntimeBridge → Chaquopy-embedded Python:
+                                        real Hermes agent runtime + plugins
+                                        (incl. bounded Android-bridge plugin for phone access)
+                                        loopback-only HTTP/SSE, Keystore-encrypted profile
 ```
 
-### File plan (Phase 0 + spike, in order)
-
-1. `mobile/src/lib/runtime/RuntimeClient.ts` — interface: `health`, `capabilities`, `models`, `sessions`, `startRun`, `stopRun`, `subscribeEvents`, `start`, `stop`.
-2. `mobile/src/lib/runtime/termux-runtime-client.ts` — wraps existing `HermesApi` unchanged; strict regression tests.
-3. `mobile/src/lib/runtime/runtime-manager.ts` — (GLM's contribution) selects active runtime, graceful fallback, foreground binding.
-4. `native/cores/ballsnative/` — Rust core (`Cargo.toml`, `src/lib.rs`): minimal loopback HTTP server exposing `/health`, `/v1/runs`, SSE events, stop. Build via `cargo-ndk` for arm64-v8a + x86_64.
-5. `mobile/android/.../runtime/RuntimeBridge.java` + Capacitor plugin — JNI entrypoints: `initialize(profile)`, `health()`, `startRun(configJson)`, `stopRun(runId)`, `streamEvents(runId)`.
-6. Runtime bundle manifest `app/assets/runtime/RuntimeBundleSpec.json` — (GLM's contribution) `{name, version, hash, size, min_sdk, signing_key_id, pinned_until, rollback_map}`; verify signature before load; retain prior bundle until replacement passes health (rollback).
-7. `mobile/android/.../security/CredentialsStore.kt` — Android Keystore + AES-GCM envelope; per-profile encrypted blob in app-private storage; never expose secrets to JS.
-8. `mobile/android/.../runtime/NativeHostService.kt` — (Kimi's contribution) foreground service, user-initiated start, clean stop.
-9. First-run managed setup flow — provider key entry → Keystore; offer import/migration from an existing Termux pairing (Kimi's migration helper); plain-language privacy copy.
-10. Termux path — "Use an existing Termux installation" behind advanced mode (unchanged behavior).
-
-### Spike (Phase 1) definition
-
-Minimal e2e: `/health` OK → create one session → one authenticated streaming run (events flowing) → stop → clean shutdown. Measure on the S24 Ultra: APK delta, cold start, peak RSS (`dumpsys meminfo`).
-
-- **GO:** health ≤2 s, cold start ≤3 s, memory ≤150 MB, all protocol steps pass, rollback works.
-- **NO-GO:** cold start >6 s or memory >200 MB or any protocol step fails → re-evaluate native stack before any consumer work.
+- **Embedding:** Chaquopy bundles CPython + Hermes + locked dependencies inside the APK/AAB.
+- **Update channel:** signed manifest (`hermes version`, dependency lockfile, sha256, signing key, pinned_until) → download wheels to app-private storage → verify signature/hash → swap environment → keep prior env for rollback. Same staged update rules as `managed-runtime.md` Phase 2.
+- **Credentials:** Android Keystore + AES-GCM envelope; provider keys never exposed to JS.
+- **Phone access:** the existing bounded Android-bridge plugin (status/settings; Accessibility opt-in) installs into the embedded Hermes environment — same protocol and safety rules as Termux mode.
+- **Licensing:** Hermes is MIT — commercial embedding permitted (verified earlier).
+- **Sizes/targets:** APK delta ~40–80 MB (Play AAB limit 200 MB); cold start ≤6 s first run (target ≤4 s); warm ≤2 s; peak memory ≤300 MB on S24.
 
 ## Sequencing (next 6 work items)
 
-| # | Item | Effort | Notes |
-|---|---|---|---|
-| 1 | RuntimeClient TS interface + Termux wrapper + tests | 1–2 d | Phase 0 gate: existing behavior unchanged |
-| 2 | Attachments e2e (in-flight): adapter→runtime bridge + on-device send verification | 2–3 d | Terra #1 priority; independent of native work |
-| 3 | Rust core skeleton + JNI bridge + Capacitor plugin | 4–5 d | arm64 + x86_64; loopback only |
-| 4 | Spike: bundle, install, one streaming run + metrics on S24 | 2–3 d | GO/NO-GO gates above |
-| 5 | Keystore profile + first-run managed onboarding (+Termux migration path) | 2–3 d | Only after spike passes |
-| 6 | Play readiness: signing key, privacy policy, listing, content decl. | 2–3 d | Parallel from item 3 |
+| # | Item | Effort |
+|---|---|---|
+| 1 | RuntimeClient TS interface + Termux wrapper + tests (Phase 0) | 1–2 d |
+| 2 | Attachments e2e: adapter→Hermes bridge + on-device send verification | 2–3 d |
+| 3 | Chaquopy spike: embedded real Hermes in APK; /health, one streaming run, stop, bridge status on S24 | 3–5 d |
+| 4 | Update/rollback channel: signed manifest + wheel swap + rollback test | 2–3 d |
+| 5 | Keystore profile + first-run managed onboarding (Termux import path) | 2–3 d |
+| 6 | Play readiness: signing, privacy, listing, content declarations | 2–3 d (parallel from 3) |
 
-## Risks (top 5, consensus)
+## Risks (top 5)
 
-1. **ABI/toolchain maintenance** → pin toolchain, CI per-ABI, strict FFI surface.
-2. **APK size / install overhead** → stripped Rust binary, ABI splits, lazy-load bundle.
-3. **Key/credential security** → Keystore-only, AES-GCM envelope, rotation, redaction, short-lived tokens.
-4. **Lifecycle/process death on Android** → foreground service + clean recovery; no background automation initially.
-5. **Play policy/compliance** → data stays on-device, transparent disclosures, bundle signing, attestation where needed.
+1. **APK size / install time** → AAB splits (arm64-only initially), strip debug artifacts, keep deps locked tight.
+2. **Cold start latency** → lazy-load heavy modules, warm the env at first launch, cache imported Hermes state.
+3. **Update breakage** → signed manifests, dependency pinning, rollback on any health failure after swap.
+4. **Play policy on embedded runtimes** → transparent disclosures; data stays on-device; no background automation initially (foreground/user-initiated only).
+5. **Android-bridge parity between modes** → same plugin + protocol in both; regression test both paths.
+
+## Superseded
+
+The Rust-native plan in the earlier version of this file is withdrawn as the primary path. It may return later as a micro-optimization for the protocol surface only if measurements demand it.
 
 ## Open decisions for Rick
 
-- Rust core vs C++ (both viable; Rust chosen by 4/4 — confirm no in-house preference).
-- Whether the initial consumer release requires managed mode (Play launch) or ships Termux-mode first with managed mode in a staged update.
-- Provider model strategy for consumers (interim: user-supplied keys, provider-agnostic).
+- Arm64-only first release vs. full ABI coverage (size vs. device reach).
+- Update delivery: in-app signed update downloads vs. Play-only releases (play-only is simpler for v1).
+- Whether managed mode ships in the same version as the Termux mode or gates on the spike result.
+
