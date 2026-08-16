@@ -15,7 +15,9 @@ export interface SessionDrawerProps {
 }
 
 function displayTitle(session: { id: string; title?: unknown }): string {
-  return typeof session.title === "string" && session.title.trim() ? session.title : session.id;
+  return typeof session.title === "string" && session.title.trim()
+    ? session.title
+    : "New chat";
 }
 
 function safeErrorMessage(error: unknown): string {
@@ -83,7 +85,7 @@ export function SessionDrawer({ api, selectedSessionId, onSelect }: SessionDrawe
   const create = async () => {
     selectionRequestRef.current += 1;
     try {
-      const session = await api.createSession({ title: "New chat" });
+      const session = await api.createSession({});
       dispatch({ type: "session_created", session });
       onSelect(session.id, []);
       setOpen(false);

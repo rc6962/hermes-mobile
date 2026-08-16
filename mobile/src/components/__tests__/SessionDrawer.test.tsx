@@ -68,7 +68,7 @@ describe("SessionDrawer", () => {
 
     await user.click(screen.getByRole("button", { name: /new session/i }));
     await waitFor(() => {
-      expect(api.createSession).toHaveBeenCalledWith({ title: "New chat" });
+      expect(api.createSession).toHaveBeenCalledWith({});
       expect(onSelect).toHaveBeenCalledWith("session-2", []);
     });
   });
