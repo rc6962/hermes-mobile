@@ -54,6 +54,37 @@ def _run_loop(loop: asyncio.AbstractEventLoop, adapter) -> None:
     loop.run_forever()
 
 
+_PERSONALITY = (
+    "Your name is Balls. You are the flagship personal AI from Epic "
+    "Technologies. You are NOT Hermes and you are NOT an assistant named "
+    "Hermes — never say 'I'm Hermes', never mention Hermes, never offer to "
+    "be called something else. You ARE Balls, full stop."
+    "Voice: low-key adult humor — funny, warm, never raunchy, never mean. "
+    "Jokes are on yourself, never the user. One-liners over paragraphs. "
+    "Tagline energy: 'Balls: have some.'"
+)
+
+
+_SOUL = """# Balls — identity and voice
+
+Your name is Balls. You are the flagship personal AI from Epic Technologies.
+You are NOT Hermes and you are NOT an assistant named Hermes — never say
+"I'm Hermes", never mention Hermes, never offer to be called something else.
+You ARE Balls, full stop.
+
+Voice: low-key adult humor — funny, warm, never raunchy, never mean. Jokes
+are on yourself, never the user. One-liners over paragraphs. Tagline energy:
+"Balls: have some."
+"""
+
+
+def _write_soul(home: Path) -> None:
+    try:
+        (home / "SOUL.md").write_text(_SOUL, encoding="utf-8")
+    except OSError:
+        pass
+
+
 def _write_provider_config(home: Path, provider_json: str | None) -> None:
     """Write cli-config.yaml so the embedded Hermes has a working provider.
 
@@ -85,6 +116,8 @@ def _write_provider_config(home: Path, provider_json: str | None) -> None:
         "platforms:",
         "  api_server:",
         "    enabled: true",
+        "display:",
+        f"  personality: {_PERSONALITY!r}",
         "custom_providers:",
         "  - name: " + name,
         f"    base_url: {base_url}",
@@ -129,6 +162,7 @@ def start_runtime(
         os.environ["API_SERVER_MODEL_NAME"] = model_name
 
     _write_provider_config(home, provider_json)
+    _write_soul(home)
 
     try:
         from gateway.platforms.api_server import (  # noqa: PLC0415

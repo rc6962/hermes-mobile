@@ -98,6 +98,28 @@ export function App({ credentialStore = apiKeyStore, bridgeAdapter = androidBrid
     }
   }, [api]);
 
+  // Poll until the engine answers: the embedded runtime takes 15-30s to
+  // boot, so a single launch check always races it. Backoff: 2s x6, 4s x6,
+  // 8s x6, then 30s cadence — stop the moment we're online.
+  useEffect(() => {
+    if (!credentialsReady || !apiKey) return;
+    let stopped = false;
+    let timer: number | undefined;
+    const delays = [2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 8, 8, 8, 8, 8, 8, 30];
+    let i = 0;
+    const tick = async () => {
+      if (stopped) return;
+      if (await checkBackend()) return;
+      if (i >= delays.length) return;
+      timer = window.setTimeout(() => void tick(), delays[i++] * 1000);
+    };
+    void tick();
+    return () => {
+      stopped = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [credentialsReady, apiKey, checkBackend]);
+
 
   const refreshBridgeStatus = useCallback(async () => {
     setBridgeLoading(true);
